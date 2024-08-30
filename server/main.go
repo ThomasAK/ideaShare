@@ -6,6 +6,9 @@ func main() {
 	app := fiber.New()
 
 	app.Static("/", "./public")
+	print("Starting server...")
 
-	app.Listen(":3000")
+	if err := app.Listen(":3000"); err != nil {
+		panic(err)
+	}
 }
