@@ -1,5 +1,11 @@
 package main
 
+import "github.com/gofiber/fiber/v2"
+
 func main() {
-	print("Hello Burritos")
+	app := fiber.New()
+
+	app.Static("/", "./public")
+
+	app.Listen(":3000")
 }
