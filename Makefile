@@ -5,3 +5,9 @@ package-ui:
 
 docker:
 	docker build . -t ideashare:dev
+
+local:
+	docker compose up -d
+
+reset:
+	docker compose down -v

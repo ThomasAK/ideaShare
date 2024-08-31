@@ -1,0 +1,15 @@
+volumes:
+  mysql:
+
+services:
+  mysql:
+    image: mysql:8.4.2
+    environment:
+      MYSQL_USER: ideashare
+      MYSQL_PASSWORD: password
+      MYSQL_RANDOM_ROOT_PASSWORD: true
+      MYSQL_DATABASE: ideashare
+    volumes:
+      - mysql:/var/lib/mysql
+    ports:
+      - "3318:3306"
