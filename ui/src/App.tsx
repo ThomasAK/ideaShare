@@ -1,34 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { JSX } from 'react'
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
+import Layout from './component/Layout.tsx'
+import { Pages } from './page.ts'
+import LightbulbTwoToneIcon from '@mui/icons-material/LightbulbTwoTone'
+import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded'
+import BarChartIcon from '@mui/icons-material/BarChart'
+import SettingsIcon from '@mui/icons-material/Settings'
 
-function App() {
-  const [count, setCount] = useState(0)
+const theme = createTheme({ colorSchemes: { dark: true } })
 
+const appPages: Pages = [
+  {
+    name: 'Ideas',
+    icon: <LightbulbTwoToneIcon />,
+    path: 'ideas'
+  },
+  {
+    name: 'My Ideas',
+    icon: <LightbulbRoundedIcon />,
+    path: 'my-ideas'
+  },
+  {
+    name: 'Metrics',
+    icon: <BarChartIcon />,
+    path: 'metrics'
+  },
+  {
+    name: 'Settings',
+    icon: <SettingsIcon />,
+    path: 'settings'
+  }
+]
+
+function App (): JSX.Element {
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <ThemeProvider theme={theme} disableTransitionOnChange>
+      <CssBaseline enableColorScheme />
+      <Layout pages={appPages} />
+    </ThemeProvider>
   )
 }
 
