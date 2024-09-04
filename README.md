@@ -8,21 +8,21 @@ A tool for sharing and voting on ideas
   - Description
   - Status
   - CreateBy
-  - CreatedTS
-  - UpdatedTS
+  - CreatedAt
+  - UpdatedAt
 - IdeaComment
   - ID
   - IdeaID
   - Comment
   - CreatedBy
-  - CreatedTS
-  - UpdatedTS
+  - CreatedAt
+  - UpdatedAt
 - IdeaLike
   - ID
   - IdeaID
   - CreatedBy
-  - CreatedTS
-  - UpdatedTS
+  - CreatedAt
+  - UpdatedAt
     - Unique: IdeaID,CreatedBy
 - User
   - ID
