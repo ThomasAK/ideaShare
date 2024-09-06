@@ -7,10 +7,11 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"ideashare/config"
+	"ideashare/routes"
 )
 
 func main() {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		config.GetStringOr(config.DbUser, "ideashare"),
 		config.GetStringOr(config.DbPass, "password"),
 		config.GetStringOr(config.DbHost, "localhost"),
@@ -35,7 +36,7 @@ func main() {
 
 	app := fiber.New()
 
-	app.Static("/", "./public")
+	routes.ConfigureRoutes(app, db)
 	print("Starting server...")
 
 	if err := app.Listen(":3000"); err != nil {
