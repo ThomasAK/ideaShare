@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
-import React from 'react'
+import { ReactNode } from 'react'
 
-export default function IdeaPage (): React.ReactNode {
+export default function IdeaPage (): ReactNode {
   const params = useParams()
-  return `idea: ${params.id}`
+  return `idea: ${params.id ?? 'no-id'}`
 }

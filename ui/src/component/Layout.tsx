@@ -25,8 +25,8 @@ export default function Layout ({ pages }: { pages: Pages }): JSX.Element {
   const navigate = useNavigate()
   const theme = useTheme()
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
-  const root = document.getElementById('root') || document.createElement('div');
-  if (isSmall){
+  const root = document.getElementById('root') ?? document.createElement('div')
+  if (isSmall) {
     root.style.marginTop = '56px'
   } else {
     root.style.marginTop = '64px'
@@ -42,7 +42,6 @@ export default function Layout ({ pages }: { pages: Pages }): JSX.Element {
   function handleNavigate (path: string): void {
     navigate(path)
   }
-
 
   return (
     <div>

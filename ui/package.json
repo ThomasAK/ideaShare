@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@editorjs/editorjs": "^2.30.5",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@fontsource/roboto": "^5.0.14",
@@ -18,14 +19,19 @@
     "@mui/material": "^6.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-editor-js": "^2.1.0",
     "react-router-dom": "^6.26.1"
   },
   "devDependencies": {
+    "pre-commit": "^1.2.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "ts-standard": "^12.0.2",
     "typescript": "^5.5.3",
     "vite": "^5.4.1"
-  }
+  },
+  "pre-commit": [
+    "lint"
+  ]
 }

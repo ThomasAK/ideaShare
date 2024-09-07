@@ -1,24 +1,26 @@
-import { ReactNode } from "react";
-import { Route, Routes, useNavigate } from "react-router-dom";
-import { Fab, Paper } from "@mui/material";
-import { Add } from "@mui/icons-material";
-import { Pages } from "../page.ts";
+import { ReactNode, useEffect } from 'react'
+import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Fab, Paper } from '@mui/material'
+import { Add } from '@mui/icons-material'
+import { Pages } from '../page.ts'
 
-export default function Page({pages}: { pages: Pages }): ReactNode {
+export default function Page ({ pages }: { pages: Pages }): ReactNode {
   const navigate = useNavigate()
+  useEffect(() => console.log('page'))
   return (
-    <div className="page">
-      <Paper id="edit-idea-page" sx={{width: '100%', height: '100%', position: 'relative'}} elevation={4}>
+    <div className='page'>
+      <Paper id='edit-idea-page' sx={{ width: '100%', height: '100%', position: 'relative', zIndex: 99999 }} elevation={4}>
         <Routes>
-          {pages.map(p => <Route key={p.path} path={p.path} element={p.element} errorElement={p.errorElement}/>)}
+          {pages.map(p => <Route key={p.path} path={p.path} element={p.element} errorElement={p.errorElement} />)}
         </Routes>
-        <Fab color="primary" size="large" aria-label="new idea"
-             sx={{position: 'absolute', bottom: 16, right: 16}}
-             onClick={function handleAdd() {
-               navigate("/idea/new")
-             }}
+        <Fab
+          color='primary' size='large' aria-label='new idea'
+          sx={{ position: 'absolute', bottom: 16, right: 16 }}
+          onClick={function handleAdd () {
+            navigate('/idea/new')
+          }}
         >
-          <Add/>
+          <Add />
         </Fab>
       </Paper>
     </div>
