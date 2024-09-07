@@ -10,7 +10,9 @@ delete standardts.extends
 
 function toLanguageOptions (conf) {
   conf.languageOptions = {
-    parserOptions: conf.parserOptions
+    parserOptions: conf.parserOptions || {
+      project: true
+    }
   }
   delete conf.parser
   delete conf.plugins
