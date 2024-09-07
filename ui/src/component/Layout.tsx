@@ -10,7 +10,9 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
-  Typography
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material'
 import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined'
 import { Pages } from '../page.ts'
@@ -21,19 +23,26 @@ import { useNavigate } from 'react-router-dom'
 export default function Layout ({ pages }: { pages: Pages }): JSX.Element {
   const [collapsed, setCollapsed]: [boolean, Function] = useState(false)
   const navigate = useNavigate()
+  const theme = useTheme()
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+  const root = document.getElementById('root') ?? document.createElement('div')
+  if (isSmall) {
+    root.style.marginTop = '56px'
+  } else {
+    root.style.marginTop = '64px'
+  }
   function handleCollapse (): void {
     setCollapsed(!collapsed)
     if (!collapsed) {
-      // @ts-expect-error
-      document.getElementById('root').style.marginLeft = '40px'
+      root.style.marginLeft = '40px'
     } else {
-      // @ts-expect-error
-      document.getElementById('root').style.marginLeft = '82px'
+      root.style.marginLeft = '82px'
     }
   }
   function handleNavigate (path: string): void {
     navigate(path)
   }
+
   return (
     <div>
       <AppBar sx={{ zIndex: '20000' }}>
@@ -69,6 +78,7 @@ export default function Layout ({ pages }: { pages: Pages }): JSX.Element {
           {collapsed ? <KeyboardDoubleArrowRightIcon /> : <KeyboardDoubleArrowLeftIcon />}
         </div>
       </Drawer>
+
     </div>
   )
 }

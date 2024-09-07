@@ -1,5 +1,5 @@
-import React from 'react'
+import { ReactNode } from 'react'
 
-export default function MetricsPage (): React.ReactNode {
+export default function MetricsPage (): ReactNode {
   return 'metrics'
 }
