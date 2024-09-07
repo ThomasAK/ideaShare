@@ -1,19 +1,19 @@
 import EditorJS from '@editorjs/editorjs'
-import { ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { Paper, useTheme, colors } from '@mui/material'
 
-interface props {id: string, readonly?: boolean, placeHolder: string, style: object, editorCreatedCb: (EditorJS) => void }
+interface props { id: string, readOnly?: boolean, placeHolder: string, style: object, editorCreatedCb: (editorJs: EditorJS) => void }
 export default function Editor ({ readOnly, placeHolder, id, style, editorCreatedCb }: props): ReactNode {
   const theme = useTheme()
-  const [editor, setEditor]: [EditorJS, (EditorJS) => void] = useState(null)
+  const [editor, setEditor] = useState<EditorJS | null>(null)
   useEffect(() => {
     const editorDiv = document.getElementById(id)
     // if the element gets re-mounted it will duplicate the EditorJS instance
-    if (editorDiv.hasAttribute('editorJS')) {
+    if ((editorDiv?.hasAttribute('editorJS') ?? false) && editor !== null) {
       editorCreatedCb(editor)
       return
     }
-    editorDiv.setAttribute('editorJS', 'true')
+    editorDiv?.setAttribute('editorJS', 'true')
     const editorJS = new EditorJS({
       holder: id,
       autofocus: true,

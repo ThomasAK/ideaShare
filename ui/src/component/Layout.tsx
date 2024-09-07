@@ -1,5 +1,5 @@
 import ThemeToggle from './ThemeToggle.tsx'
-import { JSX, useState } from 'react'
+import { type JSX, useState } from 'react'
 import {
   AppBar,
   Box,
@@ -15,13 +15,13 @@ import {
   useTheme
 } from '@mui/material'
 import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined'
-import { Pages } from '../page.ts'
+import { type Pages } from '../page.ts'
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
 import { useNavigate } from 'react-router-dom'
 
 export default function Layout ({ pages }: { pages: Pages }): JSX.Element {
-  const [collapsed, setCollapsed]: [boolean, Function] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const navigate = useNavigate()
   const theme = useTheme()
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
@@ -64,7 +64,7 @@ export default function Layout ({ pages }: { pages: Pages }): JSX.Element {
       <Drawer variant='permanent' anchor='left' sx={{ position: 'relative' }} PaperProps={{ sx: { justifyContent: 'center' } }}>
         <List sx={{ minWidth: '24px' }}>
           {pages.filter(p => !(p.icon == null)).map((page) => (
-            <ListItem onClick={() => handleNavigate(page.path)} key={page.name} sx={{ paddingLeft: '0', paddingRight: '0' }}>
+            <ListItem onClick={() => { handleNavigate(page.path) }} key={page.name} sx={{ paddingLeft: '0', paddingRight: '0' }}>
               <ListItemButton sx={{ flexDirection: 'column', paddingLeft: '.5rem', paddingRight: '.5rem' }}>
                 <ListItemIcon sx={{ minWidth: '0' }}>
                   {page.icon}

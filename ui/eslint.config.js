@@ -37,7 +37,14 @@ standardts.languageOptions.parser = {
 
 export default [
   {
-    // ignores: ['**/dist/**']
+    ignores: ['**/dist/**', '**/**js']
+  },
+  {
+    files: [
+      '**/*.ts',
+      '**/*.tsx',
+      '**/*.jsx',
+    ],
   },
   eslintConfigStandard,
   standardts,

@@ -1,12 +1,11 @@
-import { JSX } from 'react'
-import * as React from 'react'
+import { type ReactNode } from 'react'
 
 export type Pages = Page[]
 
 export interface Page {
   name: string
-  icon?: JSX.Element
+  icon?: ReactNode
   path: string
-  element: React.ReactNode | null
-  errorElement?: React.ReactNode | null
+  element: ReactNode | null
+  errorElement?: ReactNode | null
 }

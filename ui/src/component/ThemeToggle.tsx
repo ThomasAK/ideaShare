@@ -1,7 +1,7 @@
 import { useColorScheme, useTheme } from '@mui/material'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
-import { ReactNode } from 'react'
+import { type ReactNode } from 'react'
 
 export default function ThemeToggle (): ReactNode {
   const { setMode } = useColorScheme()
