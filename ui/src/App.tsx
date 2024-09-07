@@ -12,7 +12,7 @@ import IdeaPage from './pages/IdeaPage.tsx'
 import MetricsPage from './pages/MetricsPage.tsx'
 import SettingsPage from './pages/SettingsPage.tsx'
 
-const theme = createTheme({ colorSchemes: { dark: true } })
+const theme = createTheme({    colorSchemes: { dark: true } });
 
 const appPages: Pages = [
   {
