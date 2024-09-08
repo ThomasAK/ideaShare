@@ -13,6 +13,13 @@
   "dependencies": {
     "@editorjs/editorjs": "^2.30.5",
     "@editorjs/paragraph": "^2.11.6",
+    "@editorjs/code": "^2.9.0",
+    "@editorjs/delimiter": "^1.4.2",
+    "@editorjs/header": "^2.8.7",
+    "@editorjs/link": "^2.6.2",
+    "@editorjs/list": "^1.10.0",
+    "@editorjs/quote": "^2.7.2",
+    "@editorjs/table": "^2.4.1",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@fontsource/roboto": "^5.0.14",

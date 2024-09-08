@@ -1,6 +1,7 @@
 import EditorJS from '@editorjs/editorjs'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Paper, useTheme, colors } from '@mui/material'
+import { EditorJSTools } from './tools.ts'
 
 interface props { id: string, readOnly?: boolean, placeHolder: string, style: object, editorCreatedCb: (editorJs: EditorJS) => void }
 export default function Editor ({ readOnly, placeHolder, id, style, editorCreatedCb }: props): ReactNode {
@@ -9,8 +10,10 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
   useEffect(() => {
     const editorDiv = document.getElementById(id)
     // if the element gets re-mounted it will duplicate the EditorJS instance
-    if ((editorDiv?.hasAttribute('editorJS') ?? false) && editor !== null) {
-      editorCreatedCb(editor)
+    if ((editorDiv?.hasAttribute('editorJS') ?? false)) {
+      if (editor !== null) {
+        editorCreatedCb(editor)
+      }
       return
     }
     editorDiv?.setAttribute('editorJS', 'true')
@@ -18,7 +21,8 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
       holder: id,
       autofocus: true,
       readOnly,
-      placeholder: placeHolder
+      placeholder: placeHolder,
+      tools: EditorJSTools
     })
     setEditor(editorJS)
     editorCreatedCb(editorJS)

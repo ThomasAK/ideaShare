@@ -1,4 +1,4 @@
-import { type JSX, useEffect } from 'react'
+import { type JSX } from 'react'
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material'
 import Layout from './component/Layout.tsx'
 import { type Pages } from './page.ts'
@@ -60,9 +60,6 @@ const appPages: Pages = [
 ]
 
 function App (): JSX.Element {
-  useEffect(() => {
-    console.log('app')
-  })
   return (
     <ThemeProvider theme={theme} disableTransitionOnChange>
       <BrowserRouter>

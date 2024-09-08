@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode } from 'react'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { Fab, Paper } from '@mui/material'
 import { Add } from '@mui/icons-material'
@@ -6,7 +6,6 @@ import { type Pages } from '../page.ts'
 
 export default function Page ({ pages }: { pages: Pages }): ReactNode {
   const navigate = useNavigate()
-  useEffect(() => { console.log('page') })
   return (
     <div className='page'>
       <Paper id='edit-idea-page' sx={{ width: '100%', height: '100%', position: 'relative', zIndex: 99999 }} elevation={4}>

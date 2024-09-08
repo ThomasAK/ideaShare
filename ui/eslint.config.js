@@ -19,7 +19,6 @@ function toLanguageOptions (conf) {
   delete conf.globals
   delete conf.env
   delete conf.parserOptions
-  // delete conf.languageOptions?.parserOptions?.project
 }
 
 toLanguageOptions(eslintConfigStandard)
