@@ -7,8 +7,11 @@ import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 
-// @ts-expect-error
-createRoot(document.getElementById('root')).render(
+const root = document.getElementById('root')
+if (root === null) {
+  throw new Error('no root')
+}
+createRoot(root).render(
   <StrictMode>
     <App />
   </StrictMode>

@@ -1,5 +1,5 @@
-import React from 'react'
+import { type ReactNode } from 'react'
 
-export default function ListPage ({ currentUser }: { currentUser?: boolean }): React.ReactNode {
-  return currentUser ? 'myIdeas' : 'allIdeas'
+export default function ListPage ({ currentUser }: { currentUser?: boolean }): ReactNode {
+  return currentUser ?? false ? 'myIdeas' : 'allIdeas'
 }

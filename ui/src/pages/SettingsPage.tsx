@@ -1,5 +1,5 @@
-import React from 'react'
+import { type ReactNode } from 'react'
 
-export default function SettingsPage (): React.ReactNode {
+export default function SettingsPage (): ReactNode {
   return 'settings'
 }
