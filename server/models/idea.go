@@ -1,13 +1,12 @@
 package models
 
-import "gorm.io/gorm"
-
 type Idea struct {
-	gorm.Model
-	Title       string
-	Description string
-	Status      string
-	CreatedBy   int
-	Likes       int `gorm:"-"`
-	Comments    []IdeaComment
+	Base
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	Status      string        `json:"status"`
+	CreatedBy   int           `json:"created_by"`
+	Likes       int           `gorm:"-" json:"likes"`
+	Comments    []IdeaComment `json:"comments"`
+	LikedByUser bool          `gorm:"-" json:"likedByUser"`
 }
