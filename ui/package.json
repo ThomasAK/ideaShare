@@ -11,20 +11,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@editorjs/editorjs": "^2.30.5",
-    "@editorjs/paragraph": "^2.11.6",
-    "@editorjs/code": "^2.9.0",
+    "@coolbytes/editorjs-delimiter": "^1.0.3",
     "@editorjs/delimiter": "^1.4.2",
+    "@editorjs/editorjs": "^2.30.5",
     "@editorjs/header": "^2.8.7",
-    "@editorjs/link": "^2.6.2",
     "@editorjs/list": "^1.10.0",
-    "@editorjs/quote": "^2.7.2",
+    "@editorjs/paragraph": "^2.11.6",
     "@editorjs/table": "^2.4.1",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@fontsource/roboto": "^5.0.14",
     "@mui/icons-material": "^6.0.1",
     "@mui/material": "^6.0.1",
+    "editorjs-text-alignment-blocktune": "^1.0.3",
+    "editorjs-undo": "^2.0.28",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-editor-js": "^2.1.0",
@@ -33,20 +33,14 @@
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-react": "^4.3.1",
     "eslint": "^8.57.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-config-standard-with-typescript": "^43.0.1",
-    "eslint-plugin-import": "^2.30.0",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.6.0",
     "globals": "^15.9.0",
     "pre-commit": "^1.2.2",
     "ts-standard": "^12.0.2",
     "typescript": "5.3.3",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "ts-standard-eslint-flat-config": "^1.0.0"
   },
   "pre-commit": [
     "lint"
