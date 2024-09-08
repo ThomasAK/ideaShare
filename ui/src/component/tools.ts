@@ -1,19 +1,34 @@
+// @ts-expect-error not a ts module
+import Paragraph from '@editorjs/paragraph'
 import Table from '@editorjs/table'
 import List from '@editorjs/list'
-// @ts-expect-error not a ts module
-import Code from '@editorjs/code'
-// @ts-expect-error not a ts module
-import LinkTool from '@editorjs/link'
 import Header from '@editorjs/header'
-import Quote from '@editorjs/quote'
-import Delimiter from '@editorjs/delimiter'
+// @ts-expect-error not a ts module
+import Delimiter from '@coolbytes/editorjs-delimiter'
+// @ts-expect-error not a ts module
+import AlignmentTuneTool from 'editorjs-text-alignment-blocktune'
 
 export const EditorJSTools = {
   table: Table,
-  list: List,
-  code: Code,
-  linkTool: LinkTool,
-  header: Header,
-  quote: Quote,
-  delimiter: Delimiter
+  list: {
+    class: List,
+    inlineToolbar: ['link', 'bold']
+  },
+  header: {
+    class: Header,
+    tunes: ['alignmentTune'],
+    inlineToolbar: ['link', 'bold']
+  },
+  delimiter: Delimiter,
+  paragraph: {
+    class: Paragraph,
+    tunes: ['alignmentTune'],
+    inlineToolbar: ['link', 'bold']
+  },
+  alignmentTune: {
+    class: AlignmentTuneTool,
+    config: {
+      default: 'center'
+    }
+  }
 }
