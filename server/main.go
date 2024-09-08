@@ -39,7 +39,7 @@ func main() {
 	routes.ConfigureRoutes(app, db)
 	print("Starting server...")
 
-	if err := app.Listen(":3000"); err != nil {
+	if err := app.Listen(":3030"); err != nil {
 		panic(err)
 	}
 }
