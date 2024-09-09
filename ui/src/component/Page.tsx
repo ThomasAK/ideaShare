@@ -18,7 +18,7 @@ export default function Page ({ pages }: { pages: Pages }): ReactNode {
   </Fab>
   return (
     <div className='page'>
-      <Paper id='edit-idea-page' sx={{ width: '100%', height: '100%', position: 'relative', zIndex: 99999 }} elevation={4}>
+      <Paper id='edit-idea-page' sx={{ width: '100%', height: '100%', position: 'relative', zIndex: 1300 }} elevation={4}>
         <Routes>
           {pages.map(p => <Route
             key={p.path}
