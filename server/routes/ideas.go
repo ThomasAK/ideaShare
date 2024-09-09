@@ -4,12 +4,21 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"ideashare/models"
+	"strconv"
 )
 
 func ListIdeas(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(ctx *fiber.Ctx) error {
+		size, err := strconv.Atoi(ctx.Query("size"))
+		if err != nil {
+			return err
+		}
+		page, err := strconv.Atoi(ctx.Query("page"))
+		if err != nil {
+			return err
+		}
 		var ideas []models.Idea
-		result := db.Find(&ideas)
+		result := db.Offset((page - 1) * size).Limit(size).Find(&ideas)
 		if result.Error != nil {
 			return result.Error
 		}

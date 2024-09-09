@@ -28,7 +28,7 @@ const appPages: Pages = [
     name: 'My Ideas',
     icon: <LightbulbRoundedIcon/>,
     path: '/my-ideas',
-    element: <ListPage currentUser/>
+    element: <IdeaPage currentUser/>
   },
   {
     name: 'Metrics',
