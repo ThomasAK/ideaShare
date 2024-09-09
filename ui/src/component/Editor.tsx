@@ -5,7 +5,7 @@ import { EditorJSTools } from './tools.ts'
 // @ts-expect-error not a ts module
 import Undo from 'editorjs-undo'
 
-interface props { id: string, readOnly?: boolean, placeHolder: string, style: object, editorCreatedCb: (editorJs: EditorJS) => void, data: EditorJS.OutputData | null }
+interface props { id: string, readOnly?: boolean, placeHolder?: string, style?: object, editorCreatedCb: (editorJs: EditorJS) => void, data: EditorJS.OutputData | null }
 export default function Editor ({ readOnly, placeHolder, id, style, editorCreatedCb, data }: props): ReactNode {
   const theme = useTheme()
   const [editor, setEditor] = useState<EditorJS | null>(null)
@@ -21,7 +21,7 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
     editorDiv?.setAttribute('editorJS', 'true')
     const editorJS = new EditorJS({
       holder: id,
-      autofocus: true,
+      autofocus: !readOnly,
       readOnly,
       placeholder: placeHolder,
       // @ts-expect-error the type is wrong...
