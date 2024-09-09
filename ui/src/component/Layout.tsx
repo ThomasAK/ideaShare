@@ -15,7 +15,7 @@ import {
   useTheme
 } from '@mui/material'
 import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined'
-import { type Pages } from '../page.ts'
+import { type Pages } from '../types/page.ts'
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
 import { useNavigate } from 'react-router-dom'

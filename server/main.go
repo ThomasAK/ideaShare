@@ -35,7 +35,7 @@ func main() {
 	}
 
 	app := fiber.New()
-
+	app.Server().ReadBufferSize = 256 * 1024
 	routes.ConfigureRoutes(app, db)
 	print("Starting server...")
 
