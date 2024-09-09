@@ -5,7 +5,7 @@ import {
   ListItemButton,
   IconButton,
   Divider,
-  Typography, Chip
+  Typography, Chip, LinearProgress
 } from '@mui/material'
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import InfiniteScroll from 'react-infinite-scroll-component'
@@ -46,10 +46,10 @@ export default function ListPage ({ currentUser }: { currentUser?: boolean }): R
                     dataLength={ideas.length}
                     next={fetchMoreData}
                     hasMore={hasMore}
-                    loader={<h4>Loading...</h4>}
+                    loader={<LinearProgress />}
                 >
                 {ideas.map(idea =>
-                <ListItem disablePadding key={idea.id} sx={{ width: '100%' }}>
+                <ListItem disablePadding key={idea.id} sx={{ width: '100%', borderBottom: '1px solid grey' }}>
                         <ListItemButton sx={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
                                 <Typography gutterBottom variant="h6" component="div">
                                     {idea.title + idea.id}
@@ -64,7 +64,6 @@ export default function ListPage ({ currentUser }: { currentUser?: boolean }): R
                         </ListItemButton>
                 </ListItem>
                 )}
-                <Divider/>
                 </InfiniteScroll>
             </List>
         </>

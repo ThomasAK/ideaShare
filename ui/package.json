@@ -23,6 +23,7 @@
     "@fontsource/roboto": "^5.0.14",
     "@mui/icons-material": "^6.0.2",
     "@mui/material": "^6.0.2",
+    "@mui/x-charts": "^7.16.0",
     "editorjs-text-alignment-blocktune": "^1.0.3",
     "editorjs-undo": "^2.0.28",
     "react": "^18.3.1",
@@ -39,9 +40,9 @@
     "globals": "^15.9.0",
     "pre-commit": "^1.2.2",
     "ts-standard": "^12.0.2",
+    "ts-standard-eslint-flat-config": "^1.0.0",
     "typescript": "5.3.3",
-    "vite": "^5.4.1",
-    "ts-standard-eslint-flat-config": "^1.0.0"
+    "vite": "^5.4.1"
   },
   "pre-commit": [
     "lint"
