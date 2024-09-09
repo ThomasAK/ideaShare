@@ -1,7 +1,7 @@
 import { type JSX } from 'react'
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material'
 import Layout from './component/Layout.tsx'
-import { type Pages } from './page.ts'
+import { type Pages } from './types/page.ts'
 import LightbulbTwoToneIcon from '@mui/icons-material/LightbulbTwoTone'
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded'
 import BarChartIcon from '@mui/icons-material/BarChart'
@@ -28,7 +28,7 @@ const appPages: Pages = [
     name: 'My Ideas',
     icon: <LightbulbRoundedIcon/>,
     path: '/my-ideas',
-    element: <IdeaPage currentUser/>
+    element: <ListPage currentUser/>
   },
   {
     name: 'Metrics',
@@ -45,7 +45,7 @@ const appPages: Pages = [
   {
     name: 'NewIdea',
     path: '/idea/new',
-    element: <EditIdeaPage isNew/>
+    element: <EditIdeaPage/>
   },
   {
     name: 'EditIdea',

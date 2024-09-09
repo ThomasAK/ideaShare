@@ -1,50 +1,56 @@
 import { type FormEvent, type ReactNode, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Editor from '../component/Editor.tsx'
 import { Button, TextField } from '@mui/material'
 import type EditorJS from '@editorjs/editorjs'
-import { type EditableIdea, newIdea } from '../types/idea.ts'
+import { type EditableIdea, fetchIdea, newIdea, saveIdea } from '../types/idea.ts'
+import { ApiError } from '../lib/api.ts'
 
 export default function EditIdeaPage (): ReactNode {
   const params = useParams()
   const [idea, setIdea] = useState<EditableIdea>(newIdea())
+  const location = useLocation()
   const navigate = useNavigate()
-  const ideaId = params.id ?? 'new'
-  const isNew = ideaId === 'new'
+  const ideaId = parseInt(params.id ?? '-1') ?? -1
+  const isNew = ideaId === -1
   let editor: EditorJS | null = null
   function editorCreated (editorJS: EditorJS): void {
     editor = editorJS
   }
   useEffect(() => {
-    if (!isNew) {
-      fetch(`/api/idea/${ideaId}`)
-        .then(async r => await r.json())
-        .then(setIdea)
-        .catch(console.error)
+    if (location.state?.idea && location.state?.idea?.id === ideaId) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      setIdea(location.state.idea)
+    } else {
+      if (!isNew) {
+        fetchIdea(ideaId).then(i => {
+          i && setIdea(i)
+        })
+          .catch(console.error)
+      }
     }
-  })
+  }, [])
   async function handleSubmit (e: FormEvent<HTMLFormElement>): Promise<boolean> {
     e.preventDefault()
-    const ideaData = await editor?.save()
-    const url = isNew ? '/api/idea' : `/api/idea/${ideaId}`
-    const method = isNew ? 'POST' : 'PUT'
-    const resp = await fetch(url, {
-      method,
-      headers: {
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
+    const ideaData = await editor?.save() ?? null
+
+    try {
+      const saved = await saveIdea({
         id: idea.id,
         title: idea.title,
-        description: JSON.stringify(ideaData)
+        description: ideaData
       })
-    })
-    if (!resp.ok) {
-      console.error(`failed to ${method} idea with id ${ideaId}: ${await resp.text()}`)
-      return false
+      if (!saved) {
+        console.error('got empty response back from saving idea')
+        return false
+      }
+      navigate(`/idea/${saved.id}`, { state: { idea: saved } })
+    } catch (e) {
+      if (e instanceof ApiError) {
+        console.error(`failed to save idea with id ${ideaId}: ${e.body}`)
+      }
     }
-    const saved = await resp.json()
-    navigate(`/idea/${saved.id}`, { state: { idea: saved } })
+
     return false
   }
   // sx prop was getting overridden without this

@@ -9,6 +9,7 @@ interface props { id: string, readOnly?: boolean, placeHolder?: string, style?: 
 export default function Editor ({ readOnly, placeHolder, id, style, editorCreatedCb, data }: props): ReactNode {
   const theme = useTheme()
   const [editor, setEditor] = useState<EditorJS | null>(null)
+  const [initData, setInitData] = useState(data)
   useEffect(() => {
     const editorDiv = document.getElementById(id)
     // if the element gets re-mounted it will duplicate the EditorJS instance
@@ -16,12 +17,17 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
       if (editor !== null) {
         editorCreatedCb(editor)
       }
+      if (!initData && data) {
+        setInitData(data)
+        editor?.isReady.then(async () => { await editor.render(data) })
+          .catch(console.error)
+      }
       return
     }
     editorDiv?.setAttribute('editorJS', 'true')
     const editorJS = new EditorJS({
       holder: id,
-      autofocus: !readOnly,
+      autofocus: !(readOnly ?? false),
       readOnly,
       placeholder: placeHolder,
       // @ts-expect-error the type is wrong...
@@ -35,7 +41,7 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
     })
     setEditor(editorJS)
     editorCreatedCb(editorJS)
-  })
+  }, [initData, data])
   const darkMode = theme.palette.mode === 'dark'
   const editorStyles = `
     .ce-toolbar__actions > *:hover {
