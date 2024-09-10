@@ -1,37 +1,37 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import {
+  Chip,
+  IconButton,
+  LinearProgress,
   List,
   ListItem,
   ListItemButton,
-  IconButton,
-  Divider,
-  Typography, Chip, LinearProgress
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material'
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import InfiniteScroll from 'react-infinite-scroll-component'
-
-interface ListIdea {
-  title: string
-  id: number
-  status: string
-  likes: number
-}
+import { useNavigate } from 'react-router-dom'
+import { fetchIdeas, type ListIdea } from '../types/idea.ts'
 
 export default function ListPage ({ currentUser }: { currentUser?: boolean }): ReactNode {
   const [ideas, setIdeas] = useState<ListIdea[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [index, setIndex] = useState(1)
+  const navigate = useNavigate()
+  const theme = useTheme()
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
 
   function fetchMoreData (): void {
-    fetch(`/api/idea?page=${index}&size=20`)
-      .then(async response => await response.json())
-      .then(json => {
-        if (!Array.isArray(json)) {
+    fetchIdeas(index, Boolean(currentUser))
+      .then(i => {
+        if (!Array.isArray(i)) {
           throw new Error('invalid data')
         }
-        setIdeas(ideas.concat(json))
+        setIdeas(ideas.concat(i))
         setIndex(index + 1)
-        setHasMore(json.length > 0)
+        setHasMore(i.length > 0)
       })
       .catch(error => { console.error(error) })
   }
@@ -50,16 +50,19 @@ export default function ListPage ({ currentUser }: { currentUser?: boolean }): R
                 >
                 {ideas.map(idea =>
                 <ListItem disablePadding key={idea.id} sx={{ width: '100%', borderBottom: '1px solid grey' }}>
-                        <ListItemButton sx={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+                        <ListItemButton
+                          sx={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}
+                          onClick={() => { navigate(`/idea/${idea.id}`) }}
+                        >
                                 <Typography gutterBottom variant="h6" component="div">
-                                    {idea.title + idea.id}
+                                    {idea.title}
                                 </Typography>
                             <span>
                                 <span>{idea.likes > 1000 ? (idea.likes / 100) + 'K' : idea.likes }</span>
                                 <IconButton aria-label="Favorite">
                                     <FavoriteBorderIcon/>
                                 </IconButton>
-                                <Chip sx={{ marginLeft: '2rem' }} variant="outlined" label={idea.status}/>
+                              {!isSmall && <Chip sx={{ marginLeft: '2rem' }} variant="outlined" label={idea.status}/> }
                             </span>
                         </ListItemButton>
                 </ListItem>
