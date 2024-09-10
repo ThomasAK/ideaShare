@@ -13,6 +13,10 @@ export default function EditIdeaPage (): ReactNode {
   const navigate = useNavigate()
   const ideaId = parseInt(params.id ?? '-1') ?? -1
   const isNew = ideaId === -1
+  // this happens when navigating from an edit page to a new idea page as the useEffect is not triggered again
+  if (idea.id && ideaId !== idea.id) {
+    setIdea(newIdea())
+  }
   let editor: EditorJS | null = null
   function editorCreated (editorJS: EditorJS): void {
     editor = editorJS
@@ -73,7 +77,7 @@ export default function EditIdeaPage (): ReactNode {
           id='edit-idea-editor'
           placeHolder='Write Your New Idea Here!'
         />
-        <Button variant='contained' type='submit'>Save</Button>
+          <Button variant='contained' type='submit'>Save</Button>
       </form>
     </div>
   )

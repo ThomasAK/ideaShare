@@ -1,6 +1,6 @@
 import EditorJS from '@editorjs/editorjs'
-import { type ReactNode, useEffect, useState } from 'react'
-import { Paper, useTheme, colors } from '@mui/material'
+import { type ReactNode, useEffect, useRef } from 'react'
+import { colors, Paper, useTheme } from '@mui/material'
 import { EditorJSTools } from './tools.ts'
 // @ts-expect-error not a ts module
 import Undo from 'editorjs-undo'
@@ -8,24 +8,29 @@ import Undo from 'editorjs-undo'
 interface props { id: string, readOnly?: boolean, placeHolder?: string, style?: object, editorCreatedCb: (editorJs: EditorJS) => void, data: EditorJS.OutputData | null }
 export default function Editor ({ readOnly, placeHolder, id, style, editorCreatedCb, data }: props): ReactNode {
   const theme = useTheme()
-  const [editor, setEditor] = useState<EditorJS | null>(null)
-  const [initData, setInitData] = useState(data)
+  const editor = useRef<EditorJS>()
+  if (editor.current) {
+    editorCreatedCb(editor.current)
+  }
   useEffect(() => {
-    const editorDiv = document.getElementById(id)
-    // if the element gets re-mounted it will duplicate the EditorJS instance
-    if ((editorDiv?.hasAttribute('editorJS') ?? false)) {
-      if (editor !== null) {
-        editorCreatedCb(editor)
-      }
-      if (!initData && data) {
-        setInitData(data)
-        editor?.isReady.then(async () => { await editor.render(data) })
-          .catch(console.error)
-      }
+    if (editor.current) {
+      editor.current?.isReady
+        .then(async () => {
+          const currentBlockCount = editor.current?.blocks.getBlocksCount() ?? 0
+          const dataBlockCount = data?.blocks.length ?? 0
+          if (dataBlockCount > 0) {
+            await editor.current?.blocks.render(data ?? { blocks: [] })
+          } else if ((currentBlockCount > 1 && dataBlockCount === 0) ||
+            (currentBlockCount === 1 && dataBlockCount === 0 && !editor.current?.blocks.getBlockByIndex(0)?.isEmpty)) {
+            // currentBlockCount is always 1 because it inserts an empty block
+            editor.current?.clear()
+          }
+        })
+        .catch(console.error)
       return
     }
-    editorDiv?.setAttribute('editorJS', 'true')
-    const editorJS = new EditorJS({
+
+    editor.current = new EditorJS({
       holder: id,
       autofocus: !(readOnly ?? false),
       readOnly,
@@ -33,15 +38,15 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
       // @ts-expect-error the type is wrong...
       tools: EditorJSTools,
       // @ts-expect-error null is fine
-      data,
-      onReady: () => {
-        // eslint-disable-next-line no-new
-        new Undo({ editor: editorJS })
-      }
+      data
     })
-    setEditor(editorJS)
-    editorCreatedCb(editorJS)
-  }, [initData, data])
+    editor.current.isReady.then(() => {
+      // eslint-disable-next-line no-new
+      new Undo({ editor: editor.current })
+    }).catch(console.error)
+
+    editorCreatedCb(editor.current)
+  }, [data])
   const darkMode = theme.palette.mode === 'dark'
   const editorStyles = `
     .ce-toolbar__actions > *:hover {

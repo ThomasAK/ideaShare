@@ -34,7 +34,7 @@ export default function IdeaPage (): ReactNode {
       <h1 style={{ width: '100%', textAlign: 'center' }}>{idea?.title}</h1>
       {((idea?.description) != null) && <Editor
         style={{ width: '100%' }}
-        id={String(params.id ?? idea?.id)}
+        id={`readonly-editor-${String(params.id ?? idea?.id)}`}
         placeHolder=""
         editorCreatedCb={() => {}}
         data={idea?.description}

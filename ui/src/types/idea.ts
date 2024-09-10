@@ -7,30 +7,32 @@ export function newIdea (): EditableIdea {
 }
 
 export interface EditableIdea {
-  id: string | null
+  id: number | null
   title: string
   description: EditorJS.OutputData | null
 }
 
 export interface ApiIdea {
-  id: string | null
+  id: number | null
   title: string
   description: string | null
 }
 
 export interface ListIdea {
-  id: string
+  id: number
   title: string
   likes: number
   status: string
 }
 
 function toEditableIdea (idea: ApiIdea | null): EditableIdea | null {
-  return idea && { ...idea, description: JSON.parse(idea.description ?? '{}') }
+  // empty string needs to be replaced
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  return idea && { ...idea, description: JSON.parse(idea.description || '{"blocks":[]}') }
 }
 
 function toApiIdea (idea: EditableIdea): ApiIdea | null {
-  return idea && { ...idea, description: JSON.stringify(idea.description ?? {}) }
+  return idea && { ...idea, description: JSON.stringify(idea.description ?? { blocks: [] }) }
 }
 
 export async function fetchIdea (id: number): Promise<EditableIdea | null> {
@@ -47,7 +49,7 @@ export async function fetchIdeas (page: number, currentUser: boolean): Promise<L
 }
 
 export async function saveIdea (idea: EditableIdea): Promise<EditableIdea | null> {
-  const isNew = !!idea.id
+  const isNew = !idea.id
   const path = isNew ? '/api/idea' : `/api/idea/${idea.id}`
   const apiIdea = toApiIdea(idea)
   return await (isNew ? apiPost(path, apiIdea) : apiPut(path, apiIdea))

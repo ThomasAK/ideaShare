@@ -3,13 +3,13 @@ import { type JSX, useState } from 'react'
 import {
   AppBar,
   Box,
-  Drawer,
+  Drawer, Fab,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Toolbar,
+  Toolbar, Tooltip,
   Typography,
   useMediaQuery,
   useTheme
@@ -19,6 +19,7 @@ import { type Pages } from '../types/page.ts'
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
 import { useNavigate } from 'react-router-dom'
+import { Add } from '@mui/icons-material'
 
 export default function Layout ({ pages }: { pages: Pages }): JSX.Element {
   const [collapsed, setCollapsed] = useState(false)
@@ -63,6 +64,16 @@ export default function Layout ({ pages }: { pages: Pages }): JSX.Element {
       </AppBar>
       <Drawer variant='permanent' anchor='left' sx={{ position: 'relative' }} PaperProps={{ sx: { justifyContent: 'center' } }}>
         <List sx={{ minWidth: '24px' }}>
+          <ListItem sx={{ paddingLeft: 0, paddingRight: 0, justifyContent: 'center' }}>
+            <Tooltip title="New Idea">
+            <Fab
+              color='primary' size={collapsed ? 'small' : 'large'} aria-label='new idea'
+              onClick={() => { navigate('/idea/new') }}
+            >
+              <Add />
+            </Fab>
+            </Tooltip>
+          </ListItem>
           {pages.filter(p => !(p.icon == null)).map((page) => (
             <ListItem onClick={() => { handleNavigate(page.path) }} key={page.name} sx={{ paddingLeft: '0', paddingRight: '0' }}>
               <ListItemButton sx={{ flexDirection: 'column', paddingLeft: '.5rem', paddingRight: '.5rem' }}>

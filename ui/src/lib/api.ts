@@ -52,7 +52,7 @@ export async function apiRequest<T> (path: string, method: string, body: any, he
     headers: headers || {}
   })
 
-  if (res.status / 100 !== 2) {
+  if (Math.floor(res.status / 100) !== 2) {
     if (res.status === 401) {
       for (const listener of unauthorizedListeners) {
         await listener()
