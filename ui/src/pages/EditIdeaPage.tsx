@@ -72,7 +72,7 @@ export default function EditIdeaPage (): ReactNode {
         <TextField label="Title" variant="outlined" fullWidth value={idea.title} onChange={(e) => { setIdea({ ...idea, title: e.target.value }) }}/>
         <Editor
           data={idea.description}
-          style={{ width: '100%', minWidth: '240px', padding: '1rem' }}
+          style={{ width: '100%', minWidth: '240px', padding: '1rem', marginTop: '1rem', marginBottom: '1rem' }}
           editorCreatedCb={editorCreated}
           id='edit-idea-editor'
           placeHolder='Write Your New Idea Here!'
