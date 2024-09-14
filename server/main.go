@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pressly/goose/v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"ideashare/config"
+	"ideashare/models"
 	"ideashare/routes"
 )
 
@@ -22,21 +22,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := goose.SetDialect("mysql"); err != nil {
+	if err = db.AutoMigrate(
+		&models.Idea{},
+		&models.IdeaComment{},
+		&models.IdeaLike{},
+		&models.SiteSetting{},
+		&models.User{},
+		&models.UserRole{},
+		&models.UserSetting{},
+	); err != nil {
 		panic(err)
 	}
-
-	sqlDb, err := db.DB()
-	if err != nil {
-		panic(err)
-	}
-	if err := goose.Up(sqlDb, "migrations"); err != nil {
-		panic(err)
-	}
-
 	app := fiber.New()
 	app.Server().ReadBufferSize = 256 * 1024
-	routes.ConfigureRoutes(app, db)
+	routes.ConfigureRoutes(app, &config.AppContainer{Db: db})
 	print("Starting server...")
 
 	if err := app.Listen(":3030"); err != nil {

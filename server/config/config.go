@@ -2,10 +2,15 @@ package config
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"os"
 )
 
 var overrides = make(map[string]string)
+
+type AppContainer struct {
+	Db *gorm.DB
+}
 
 const (
 	DbHost = "DB_HOST"
