@@ -22,7 +22,7 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 	api.Get("/user/current", AppRoute(container, func(container *config.AppContainer, c *fiber.Ctx) (interface{}, error) {
 		return c.Context().UserValue("user"), nil
 	}))
-	noPreloads := []string{}
+	var noPreloads []string
 	RegisterCrudder(api, "/user",
 		container, emptyUser, NewOwnerOrAdminAuthorizer(&AuthorizeOverrides[*models.User]{}), 100, noPreloads)
 
@@ -38,9 +38,9 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 			ReadOne: &AllowAllForModel,
 		}), 50, []string{"comments"}, &CrudderEventHandler[*models.Idea]{
 			Handles: EventType{ReadOne, AfterLoad},
-			Handle: func(event CrudderEvent[*models.Idea]) error {
-				model := event.Context.Value(CurrentModelContextKey).(*models.Idea)
-				user := event.Context.Value(CurrentUserContextKey).(*models.User)
+			Handle: func(event *CrudderEvent[*models.Idea]) error {
+				model := event.Model
+				user := event.User
 				var count int64
 				container.Db.Model(&models.IdeaLike{}).Where("idea_id = ?", model.ID).Count(&count)
 				model.Likes = int(count)

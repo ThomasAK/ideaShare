@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"context"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"ideashare/config"
@@ -79,16 +78,16 @@ type EventType struct {
 	Action EventAction
 }
 
-type CrudderEventHandler[T any] struct {
+type CrudderEventHandler[T models.BaseModel] struct {
 	Handles EventType
-	Handle  func(event CrudderEvent[T]) error
+	Handle  func(event *CrudderEvent[T]) error
 }
 
-type CrudderEvent[T any] struct {
-	Type         EventType
-	CanTransform bool
-	Context      context.Context
-	Transformed  *T
+type CrudderEvent[T models.BaseModel] struct {
+	Type  EventType
+	Ctx   *fiber.Ctx
+	Model T
+	User  *models.User
 }
 
 func RegisterCrudder[T models.BaseModel](
@@ -133,37 +132,13 @@ type ContextValue struct {
 	Val interface{}
 }
 
-const CurrentRequestContextKey = "requestContext"
-const CurrentModelContextKey = "modelContext"
-const CurrentUserContextKey = "userContext"
-
-func eventContext(ctx *fiber.Ctx, values ...ContextValue) context.Context {
-	c := context.WithValue(context.Background(), CurrentRequestContextKey, ctx)
-	for _, v := range values {
-		c = context.WithValue(c, v.Key, v.Val)
-	}
-	return c
-}
-
-func (c *Crudder[T]) fireEvent(method CrudMethod, action EventAction, ctx context.Context, canTransform bool) (interface{}, error) {
-	eventType := EventType{
-		Method: method,
-		Action: action,
-	}
-	event := CrudderEvent[T]{
-		Type:         eventType,
-		CanTransform: canTransform,
-		Context:      ctx,
-	}
-	for _, handler := range c.eventHandlers[eventType] {
+func (c *Crudder[T]) fireEvent(event *CrudderEvent[T]) error {
+	for _, handler := range c.eventHandlers[event.Type] {
 		if err := handler.Handle(event); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	if event.CanTransform && event.Transformed != nil {
-		return event.Transformed, nil
-	}
-	return nil, nil
+	return nil
 }
 
 func (c *Crudder[T]) Create() func(c *fiber.Ctx) error {
@@ -214,15 +189,9 @@ func (c *Crudder[T]) ReadOneById() func(c *fiber.Ctx) error {
 		if found.GetID() == 0 {
 			return nil, ctx.SendStatus(404)
 		}
-		handled, err := c.fireEvent(ReadOne, AfterLoad, eventContext(ctx,
-			ContextValue{CurrentModelContextKey, found},
-			ContextValue{CurrentUserContextKey, user},
-		), true)
+		err := c.fireEvent(&CrudderEvent[T]{EventType{ReadOne, AfterLoad}, ctx, found, user})
 		if err != nil {
 			return nil, err
-		}
-		if handled != nil {
-			return handled, nil
 		}
 		return found, nil
 	})

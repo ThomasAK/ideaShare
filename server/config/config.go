@@ -31,6 +31,16 @@ func GetStringOr(key string, def string) string {
 	return val
 }
 
+func MakeDsn(user, pass, host, port, name string) string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		user,
+		pass,
+		host,
+		port,
+		name,
+	)
+}
+
 func MustGetString(key string) string {
 	if val, ok := overrides[key]; ok {
 		return val
