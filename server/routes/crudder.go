@@ -41,6 +41,7 @@ func AppRouteWithBody[T any](container *config.AppContainer, newBody func() T, h
 func AppRoute(container *config.AppContainer, handler func(container *config.AppContainer, c *fiber.Ctx) (interface{}, error)) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		//TODO authenticate and lookup user
+		//container.AuthProvider.authenticate(c)
 		c.Locals("user", dummyUser)
 		res, err := handler(container, c)
 		if err != nil || res == nil {
@@ -215,19 +216,16 @@ func (c *Crudder[T]) ReadOneById() func(c *fiber.Ctx) error {
 		if err != nil {
 			return nil, err
 		}
-		filter.Find(found, ctx.Params("id"))
-		if filter.Error != nil {
-			return nil, handleDbError(filter.Error)
+		res := filter.Take(found, ctx.Params("id"))
+		if res.Error != nil {
+			return nil, handleDbError(res.Error)
 		}
 		if !c.config.authorizer(crudderCtx) {
 			return nil, ctx.SendStatus(403)
 		}
-		if found.GetID() == 0 {
-			return nil, ctx.SendStatus(404)
-		}
 		err = c.fireEvent(&CrudderEvent[T]{
 			AfterLoad,
-			&CrudderCtx[T]{Method: ReadOne, User: user, Model: found, ReqCtx: ctx},
+			crudderCtx,
 		})
 		if err != nil {
 			return nil, err
@@ -245,12 +243,12 @@ func (c *Crudder[T]) UpdateById() func(c *fiber.Ctx) error {
 		if err != nil {
 			return nil, err
 		}
-		lookupFilter.Find(found, ctx.Params("id"))
+		res := lookupFilter.Take(found, ctx.Params("id"))
+		if res.Error != nil {
+			return nil, handleDbError(res.Error)
+		}
 		if !c.config.authorizer(crudderCtx) {
 			return nil, ctx.SendStatus(403)
-		}
-		if found.GetID() == 0 {
-			return nil, ctx.SendStatus(404)
 		}
 		filter, err := c.config.applyFilter(crudderCtx, container.Db)
 		if err != nil {
@@ -274,7 +272,10 @@ func (c *Crudder[T]) DeleteById() func(c *fiber.Ctx) error {
 		if err != nil {
 			return nil, err
 		}
-		filter.Find(found, ctx.Params("id"))
+		res := filter.Take(found, ctx.Params("id"))
+		if res.Error != nil {
+			return nil, handleDbError(res.Error)
+		}
 		if !c.config.authorizer(crudderCtx) {
 			return nil, ctx.SendStatus(403)
 		}

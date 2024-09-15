@@ -14,9 +14,8 @@ func AllowAllReadAuthorizer[T models.BaseModel](ctx *CrudderCtx[T]) bool {
 	return OwnerOrAdminAuthorizer(ctx)
 }
 
-func SelfOrSiteAdminAuthorizer[T models.BaseModel](ctx *CrudderCtx[T]) bool {
-	var zero T
-	if ctx.Model != zero && ctx.Model.GetID() == ctx.User.ID {
+func SelfOrSiteAdminAuthorizer(ctx *CrudderCtx[*models.User]) bool {
+	if ctx.Model != nil && ctx.Model.ID == ctx.User.ID {
 		return true
 	}
 	return SiteAdminAuthorizer(ctx)
@@ -29,7 +28,7 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 	})
 	api := app.Group("/api")
 	api.Get("/user/current", AppRoute(container, func(container *config.AppContainer, c *fiber.Ctx) (interface{}, error) {
-		return c.Context().UserValue("user"), nil
+		return c.Locals("user"), nil
 	}))
 
 	RegisterCrudder(&CrudderConfig[*models.UserSetting]{
@@ -52,7 +51,7 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 			if err != nil {
 				return nil, fiber.ErrBadRequest
 			}
-			return query.Where("created_by = ?", ctx.User.ID).Where("user_id = ?", userID), nil
+			return query.Where("user_id = ?", userID), nil
 		},
 	})
 
@@ -61,7 +60,7 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 		basePath:      "/user",
 		container:     container,
 		newEmptyModel: func() *models.User { return &models.User{} },
-		authorizer:    SelfOrSiteAdminAuthorizer[*models.User],
+		authorizer:    SelfOrSiteAdminAuthorizer,
 	})
 
 	RegisterCrudder(&CrudderConfig[*models.SiteSetting]{
@@ -78,7 +77,10 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 		container:     container,
 		newEmptyModel: func() *models.IdeaLike { return &models.IdeaLike{} },
 		authorizer: func(ctx *CrudderCtx[*models.IdeaLike]) bool {
-			if !isSiteAdmin(ctx.User) && (ctx.Method == ReadAll || ctx.Method == ReadOne || ctx.Method == Update) {
+			if isSiteAdmin(ctx.User) {
+				return true
+			}
+			if ctx.Method == ReadAll || ctx.Method == ReadOne || ctx.Method == Update {
 				return false
 			}
 			if ctx.RequestBody != nil && ctx.RequestBody.UserID != ctx.User.ID {
@@ -88,7 +90,7 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 			if err != nil {
 				return false
 			}
-			if (ctx.Method == Create || ctx.Method == Update) && ctx.RequestBody.IdeaID != paramsInt {
+			if ctx.RequestBody.IdeaID != paramsInt {
 				return false
 			}
 			return OwnerOrAdminAuthorizer(ctx)
