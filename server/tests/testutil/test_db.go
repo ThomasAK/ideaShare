@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	sqle "github.com/dolthub/go-mysql-server"
 	"github.com/dolthub/go-mysql-server/memory"
 	"github.com/dolthub/go-mysql-server/server"
@@ -34,4 +35,31 @@ func InitDB() {
 
 func TearDownDB() {
 	_ = dbServer.Close()
+}
+
+func PrintTableContents(table string) {
+	fmt.Println("Printing contents of table " + table)
+	db, _ := Container.Db.DB()
+	rows, _ := db.Query("select * from " + table)
+	cols, _ := rows.Columns()
+	row := make([]interface{}, len(cols))
+	rowPtr := make([]interface{}, len(cols))
+	for i := range row {
+		rowPtr[i] = &row[i]
+	}
+	fmt.Println(cols)
+	for rows.Next() {
+		rows.Scan(rowPtr...)
+		for i, col := range row {
+			if col == nil {
+				row[i] = "NULL"
+			} else {
+				switch v := col.(type) {
+				case []byte:
+					row[i] = string(v)
+				}
+			}
+		}
+		fmt.Println(row...)
+	}
 }

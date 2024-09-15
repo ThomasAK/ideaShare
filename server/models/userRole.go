@@ -8,7 +8,7 @@ const (
 )
 
 type UserRole struct {
-	Base
-	UserID int  `json:"userID"`
-	Role   Role `json:"role"`
+	SoftDeleteModel
+	UserID int  `gorm:"not null" json:"userID" faker:"-"`
+	Role   Role `gorm:"not null" json:"role"`
 }

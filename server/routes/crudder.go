@@ -1,23 +1,29 @@
 package routes
 
 import (
+	"errors"
+	"github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"ideashare/config"
 	"ideashare/models"
+	"log/slog"
 	"time"
 )
 
 var dummyUser = &models.User{
-	Base: models.Base{
-		ID:        1,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	SoftDeleteModel: models.SoftDeleteModel{
+		HardDeleteModel: models.HardDeleteModel{
+			ID:        1,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			CreatedBy: 1,
+		},
 		DeletedAt: gorm.DeletedAt{},
 	},
 	ExternalID: "1",
 	FirstName:  "Admin",
-	LastName:   "Adminovich",
+	LastName:   "Admin",
 	Roles:      []*models.UserRole{{UserID: 1, Role: models.SiteAdmin}},
 }
 
@@ -49,18 +55,14 @@ func AppRoute(container *config.AppContainer, handler func(container *config.App
 }
 
 type Crudder[T models.BaseModel] struct {
-	container     *config.AppContainer
-	newEmptyModel func() T
-	authorizer    Authorizer[T]
-	maxPageSize   int
-	preloads      []string
+	config        *CrudderConfig[T]
 	eventHandlers map[EventType][]*CrudderEventHandler[T]
 }
 
-type EventAction string
+type EventType string
 
 const (
-	AfterLoad EventAction = "afterLoad"
+	AfterLoad EventType = "afterLoad"
 )
 
 type CrudMethod string
@@ -73,58 +75,71 @@ const (
 	Delete  CrudMethod = "delete"
 )
 
-type EventType struct {
-	Method CrudMethod
-	Action EventAction
-}
-
 type CrudderEventHandler[T models.BaseModel] struct {
 	Handles EventType
 	Handle  func(event *CrudderEvent[T]) error
 }
 
+type CrudderCtx[T models.BaseModel] struct {
+	Method      CrudMethod
+	User        *models.User
+	RequestBody T
+	Model       T
+	Rows        []T
+	ReqCtx      *fiber.Ctx
+}
+
 type CrudderEvent[T models.BaseModel] struct {
-	Type  EventType
-	Ctx   *fiber.Ctx
-	Model T
-	User  *models.User
+	Type EventType
+	Ctx  *CrudderCtx[T]
+}
+
+type CrudderConfig[T models.BaseModel] struct {
+	router          fiber.Router
+	basePath        string
+	container       *config.AppContainer
+	newEmptyModel   func() T
+	authorizer      func(ctx *CrudderCtx[T]) bool
+	maxPageSize     int
+	readOnePreloads []string
+	eventHandlers   []*CrudderEventHandler[T]
+	applyFilter     func(ctx *CrudderCtx[T], query *gorm.DB) (*gorm.DB, error)
 }
 
 func RegisterCrudder[T models.BaseModel](
-	router fiber.Router,
-	basePath string,
-	container *config.AppContainer,
-	newEmptyModel func() T,
-	authorizer Authorizer[T],
-	maxPageSize int,
-	preloads []string,
-	eventHandlers ...*CrudderEventHandler[T],
+	config *CrudderConfig[T],
 ) *Crudder[T] {
-	crudder := &Crudder[T]{
-		container:     container,
-		newEmptyModel: newEmptyModel,
-		authorizer:    authorizer,
-		maxPageSize:   maxPageSize,
-		preloads:      preloads,
-		eventHandlers: make(map[EventType][]*CrudderEventHandler[T]),
+	if config.maxPageSize == 0 {
+		config.maxPageSize = 50
 	}
-	for _, handler := range eventHandlers {
-		if _, ok := crudder.eventHandlers[handler.Handles]; !ok {
-			crudder.eventHandlers[handler.Handles] = []*CrudderEventHandler[T]{handler}
-		} else {
-			crudder.eventHandlers[handler.Handles] = append(crudder.eventHandlers[handler.Handles], handler)
+	if config.applyFilter == nil {
+		config.applyFilter = func(ctx *CrudderCtx[T], query *gorm.DB) (*gorm.DB, error) {
+			return query, nil
 		}
 	}
-	crudder.registerRoutes(basePath, router)
+	crudder := &Crudder[T]{
+		config:        config,
+		eventHandlers: make(map[EventType][]*CrudderEventHandler[T]),
+	}
+	if config.eventHandlers != nil {
+		for _, handler := range config.eventHandlers {
+			if _, ok := crudder.eventHandlers[handler.Handles]; !ok {
+				crudder.eventHandlers[handler.Handles] = []*CrudderEventHandler[T]{handler}
+			} else {
+				crudder.eventHandlers[handler.Handles] = append(crudder.eventHandlers[handler.Handles], handler)
+			}
+		}
+	}
+	crudder.registerRoutes()
 	return crudder
 }
 
-func (c *Crudder[T]) registerRoutes(basePath string, router fiber.Router) {
-	router.Get(basePath, c.ReadAll())
-	router.Post(basePath, c.Create())
-	router.Get(basePath+"/:id", c.ReadOneById())
-	router.Put(basePath+"/:id", c.UpdateById())
-	router.Delete(basePath+"/:id", c.DeleteById())
+func (c *Crudder[T]) registerRoutes() {
+	c.config.router.Get(c.config.basePath, c.ReadAll())
+	c.config.router.Post(c.config.basePath, c.Create())
+	c.config.router.Get(c.config.basePath+"/:id", c.ReadOneById())
+	c.config.router.Put(c.config.basePath+"/:id", c.UpdateById())
+	c.config.router.Delete(c.config.basePath+"/:id", c.DeleteById())
 }
 
 type ContextValue struct {
@@ -142,15 +157,16 @@ func (c *Crudder[T]) fireEvent(event *CrudderEvent[T]) error {
 }
 
 func (c *Crudder[T]) Create() func(c *fiber.Ctx) error {
-	return AppRouteWithBody(c.container, c.newEmptyModel, func(container *config.AppContainer, incoming T, ctx *fiber.Ctx) (interface{}, error) {
+	return AppRouteWithBody(c.config.container, c.config.newEmptyModel, func(container *config.AppContainer, incoming T, ctx *fiber.Ctx) (interface{}, error) {
 		user := ctx.Locals("user").(*models.User)
-		if !c.authorizer.CanCreate(user, incoming) {
+		incoming.SetCreatedBy(user.ID)
+		crudderCtx := &CrudderCtx[T]{Method: Create, User: user, Model: incoming, ReqCtx: ctx, RequestBody: incoming}
+		if !c.config.authorizer(crudderCtx) {
 			return nil, ctx.SendStatus(403)
 		}
-		incoming.SetCreatedBy(user.ID)
 		result := container.Db.Create(incoming)
 		if result.Error != nil {
-			return nil, result.Error
+			return nil, handleDbError(result.Error)
 		}
 		ctx.Status(201)
 		return incoming, nil
@@ -158,38 +174,61 @@ func (c *Crudder[T]) Create() func(c *fiber.Ctx) error {
 }
 
 func (c *Crudder[T]) ReadAll() func(ctx *fiber.Ctx) error {
-	return AppRoute(c.container, func(container *config.AppContainer, ctx *fiber.Ctx) (interface{}, error) {
+	return AppRoute(c.config.container, func(container *config.AppContainer, ctx *fiber.Ctx) (interface{}, error) {
 		user := ctx.Locals("user").(*models.User)
-		if !c.authorizer.CanReadAll(user) {
-			return nil, ctx.SendStatus(403)
-		}
 		size := ctx.QueryInt("size", 10)
 		page := ctx.QueryInt("page", 1)
 		var results []T
-		result := container.Db.Offset((page - 1) * size).Limit(size).Find(&results)
+		crudderCtx := &CrudderCtx[T]{Method: ReadAll, User: user, Rows: results, ReqCtx: ctx}
+		if !c.config.authorizer(crudderCtx) {
+			return nil, ctx.SendStatus(403)
+		}
+		filter, err := c.config.applyFilter(crudderCtx, container.Db)
+		if err != nil {
+			return nil, err
+		}
+		result := filter.Offset((page - 1) * size).Limit(size).Find(&results)
 		if result.Error != nil {
-			return nil, result.Error
+			return nil, handleDbError(result.Error)
+		}
+		err = c.fireEvent(&CrudderEvent[T]{
+			AfterLoad,
+			crudderCtx,
+		})
+		if err != nil {
+			return nil, err
 		}
 		return results, nil
 	})
 }
 
 func (c *Crudder[T]) ReadOneById() func(c *fiber.Ctx) error {
-	return AppRoute(c.container, func(container *config.AppContainer, ctx *fiber.Ctx) (interface{}, error) {
+	return AppRoute(c.config.container, func(container *config.AppContainer, ctx *fiber.Ctx) (interface{}, error) {
 		user := ctx.Locals("user").(*models.User)
-		found := c.newEmptyModel()
+		found := c.config.newEmptyModel()
 		tx := container.Db
-		for _, preload := range c.preloads {
+		for _, preload := range c.config.readOnePreloads {
 			tx = tx.Preload(preload)
 		}
-		tx.Find(found, ctx.Params("id"))
-		if !c.authorizer.CanReadOne(user, found) {
+		crudderCtx := &CrudderCtx[T]{Method: ReadOne, User: user, Model: found, ReqCtx: ctx}
+		filter, err := c.config.applyFilter(crudderCtx, tx)
+		if err != nil {
+			return nil, err
+		}
+		filter.Find(found, ctx.Params("id"))
+		if filter.Error != nil {
+			return nil, handleDbError(filter.Error)
+		}
+		if !c.config.authorizer(crudderCtx) {
 			return nil, ctx.SendStatus(403)
 		}
 		if found.GetID() == 0 {
 			return nil, ctx.SendStatus(404)
 		}
-		err := c.fireEvent(&CrudderEvent[T]{EventType{ReadOne, AfterLoad}, ctx, found, user})
+		err = c.fireEvent(&CrudderEvent[T]{
+			AfterLoad,
+			&CrudderCtx[T]{Method: ReadOne, User: user, Model: found, ReqCtx: ctx},
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -198,18 +237,28 @@ func (c *Crudder[T]) ReadOneById() func(c *fiber.Ctx) error {
 }
 
 func (c *Crudder[T]) UpdateById() func(c *fiber.Ctx) error {
-	return AppRouteWithBody(c.container, c.newEmptyModel, func(container *config.AppContainer, incoming T, ctx *fiber.Ctx) (interface{}, error) {
-		found := c.newEmptyModel()
-		container.Db.Find(found, ctx.Params("id"))
-		if !c.authorizer.CanUpdate(ctx.Locals("user").(*models.User), found) {
+	return AppRouteWithBody(c.config.container, c.config.newEmptyModel, func(container *config.AppContainer, incoming T, ctx *fiber.Ctx) (interface{}, error) {
+		found := c.config.newEmptyModel()
+		user := ctx.Locals("user").(*models.User)
+		crudderCtx := &CrudderCtx[T]{Method: Update, User: user, Model: found, ReqCtx: ctx, RequestBody: incoming}
+		lookupFilter, err := c.config.applyFilter(crudderCtx, container.Db)
+		if err != nil {
+			return nil, err
+		}
+		lookupFilter.Find(found, ctx.Params("id"))
+		if !c.config.authorizer(crudderCtx) {
 			return nil, ctx.SendStatus(403)
 		}
 		if found.GetID() == 0 {
 			return nil, ctx.SendStatus(404)
 		}
-		result := container.Db.Save(&incoming)
+		filter, err := c.config.applyFilter(crudderCtx, container.Db)
+		if err != nil {
+			return nil, err
+		}
+		result := filter.Save(&incoming)
 		if result.Error != nil {
-			return nil, result.Error
+			return nil, handleDbError(result.Error)
 		}
 		return incoming, nil
 	})
@@ -217,17 +266,41 @@ func (c *Crudder[T]) UpdateById() func(c *fiber.Ctx) error {
 }
 
 func (c *Crudder[T]) DeleteById() func(c *fiber.Ctx) error {
-	return AppRouteWithBody(c.container, c.newEmptyModel, func(container *config.AppContainer, incoming T, ctx *fiber.Ctx) (interface{}, error) {
-		found := c.newEmptyModel()
-		container.Db.Find(found, ctx.Params("id"))
-		if !c.authorizer.CanDelete(ctx.Locals("user").(*models.User), found) {
+	return AppRoute(c.config.container, func(container *config.AppContainer, ctx *fiber.Ctx) (interface{}, error) {
+		found := c.config.newEmptyModel()
+		user := ctx.Locals("user").(*models.User)
+		crudderCtx := &CrudderCtx[T]{Method: Delete, User: user, Model: found, ReqCtx: ctx}
+		filter, err := c.config.applyFilter(crudderCtx, container.Db)
+		if err != nil {
+			return nil, err
+		}
+		filter.Find(found, ctx.Params("id"))
+		if !c.config.authorizer(crudderCtx) {
 			return nil, ctx.SendStatus(403)
 		}
-		result := container.Db.Delete(found, ctx.Params("id"))
+		result := container.Db.Delete(found)
 		if result.Error != nil {
-			return nil, result.Error
+			return nil, handleDbError(result.Error)
 		}
 		ctx.Status(204)
 		return nil, nil
 	})
+}
+
+func handleDbError(err error) error {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return fiber.ErrConflict
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return fiber.ErrNotFound
+	}
+	if errors.Is(err, gorm.ErrInvalidData) {
+		return fiber.ErrBadRequest
+	}
+	mysqlErr, ok := err.(*mysql.MySQLError)
+	if ok && mysqlErr.Number == 1062 {
+		return fiber.ErrConflict
+	}
+	slog.Error(err.Error())
+	return fiber.ErrInternalServerError
 }

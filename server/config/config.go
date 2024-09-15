@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"os"
+	"time"
 )
 
 var overrides = make(map[string]string)
@@ -31,14 +33,20 @@ func GetStringOr(key string, def string) string {
 	return val
 }
 
-func MakeDsn(user, pass, host, port, name string) string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-		user,
-		pass,
-		host,
-		port,
-		name,
-	)
+func MakeDsn(user, pass, host, port, name string, allowNativePasswords bool) string {
+	c := mysql.Config{
+		Addr:                 host + ":" + port,
+		Net:                  "tcp",
+		DBName:               name,
+		ParseTime:            true,
+		Loc:                  time.UTC,
+		AllowNativePasswords: allowNativePasswords,
+	}
+	if user != "" {
+		c.User = user
+		c.Passwd = pass
+	}
+	return c.FormatDSN()
 }
 
 func MustGetString(key string) string {

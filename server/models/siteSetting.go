@@ -1,7 +1,7 @@
 package models
 
 type SiteSetting struct {
-	Base
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	SoftDeleteModel
+	Key   string `gorm:"not null" json:"name"`
+	Value string `gorm:"not null" json:"value"`
 }

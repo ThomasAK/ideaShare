@@ -6,12 +6,13 @@ import (
 )
 
 func main() {
-	a := app.RunApp(config.MakeDsn(
+	a, _ := app.RunApp(config.MakeDsn(
 		config.GetStringOr(config.DbUser, "ideashare"),
 		config.GetStringOr(config.DbPass, "password"),
 		config.GetStringOr(config.DbHost, "localhost"),
 		config.GetStringOr(config.DbPort, "3318"),
 		config.GetStringOr(config.DbName, "ideashare"),
+		false,
 	))
 	if err := a.Listen(":3030"); err != nil {
 		panic(err)
