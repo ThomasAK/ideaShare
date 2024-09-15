@@ -1,13 +1,13 @@
 package routes
 
 import (
-	"ideashare/tests/testutil"
+	"ideashare/testutil"
 	"os"
 	"testing"
 )
 
 func TestMain(m *testing.M) {
-	testutil.SetupApiTest()
+	testutil.SetupApiTest(ConfigureRoutes)
 	code := m.Run()
 	testutil.TeardownApiTest()
 	os.Exit(code)

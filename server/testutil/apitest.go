@@ -32,9 +32,10 @@ func WaitForHealthy(maxWait time.Duration) {
 	}
 }
 
-func SetupApiTest() {
+func SetupApiTest(afterAppSetup func(*fiber.App, *config.AppContainer)) {
 	InitDB()
 	App, Container = app.RunApp(config.MakeDsn("", "", "localhost", "3319", "ideashare", true))
+	afterAppSetup(App, Container)
 	go func() {
 		if err := App.Listen(":3031"); err != nil {
 			panic(err)

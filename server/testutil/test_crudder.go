@@ -1,4 +1,4 @@
-package routes
+package testutil
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"ideashare/models"
-	"ideashare/tests/testutil"
 	"io"
 	"net/http"
 	"strconv"
@@ -18,7 +17,7 @@ func TestCrudEndpoints[T models.BaseModel](t *testing.T, prefix string, emptyMod
 	testRead(t, prefix, created, emptyModel)
 	testUpdate(t, prefix, created, update, emptyModel)
 	testDelete(t, prefix, created)
-	testReadAll[T](t, prefix, func(count int) {
+	TestReadAll[T](t, prefix, func(count int) {
 		for i := 0; i < count; i++ {
 			testCreate(t, prefix, emptyModel)
 		}
@@ -34,12 +33,12 @@ func TestCrudEndpointsWithoutAll[T models.BaseModel](t *testing.T, prefix string
 
 func testCreate[T models.BaseModel](t *testing.T, prefix string, emptyModel func() T) T {
 	fmt.Println("Testing create new record for prefix:" + " " + prefix)
-	populatedModel := testutil.MakeFake(emptyModel())
+	populatedModel := MakeFake(emptyModel())
 	reqBody, err := json.Marshal(populatedModel)
 	if err != nil {
 		panic(err)
 	}
-	res, err := http.Post(testutil.TestApiUrl(prefix), "application/json", bytes.NewBuffer(reqBody))
+	res, err := http.Post(TestApiUrl(prefix), "application/json", bytes.NewBuffer(reqBody))
 	defer res.Body.Close()
 	if err != nil {
 		panic(err)
@@ -64,7 +63,7 @@ func testCreate[T models.BaseModel](t *testing.T, prefix string, emptyModel func
 
 func testRead[T models.BaseModel](t *testing.T, prefix string, created T, emptyModel func() T) {
 	fmt.Println("Testing read for prefix:" + " " + prefix + " with id: " + strconv.Itoa(created.GetID()) + "")
-	res, err := http.Get(testutil.TestApiUrl(prefix + "/" + strconv.Itoa(created.GetID())))
+	res, err := http.Get(TestApiUrl(prefix + "/" + strconv.Itoa(created.GetID())))
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +86,7 @@ func testUpdate[T models.BaseModel](t *testing.T, prefix string, created T, upda
 	if err != nil {
 		panic(err)
 	}
-	res, err := http.NewRequest(http.MethodPut, testutil.TestApiUrl(prefix+"/"+strconv.Itoa(created.GetID())), bytes.NewBuffer(reqBody))
+	res, err := http.NewRequest(http.MethodPut, TestApiUrl(prefix+"/"+strconv.Itoa(created.GetID())), bytes.NewBuffer(reqBody))
 	if err != nil {
 		panic(err)
 	}
@@ -116,7 +115,7 @@ func testUpdate[T models.BaseModel](t *testing.T, prefix string, created T, upda
 
 func testDelete[T models.BaseModel](t *testing.T, prefix string, created T) {
 	fmt.Println("Testing delete for prefix:" + " " + prefix + " with id: " + strconv.Itoa(created.GetID()) + "")
-	req, err := http.NewRequest(http.MethodDelete, testutil.TestApiUrl(prefix+"/"+strconv.Itoa(created.GetID())), nil)
+	req, err := http.NewRequest(http.MethodDelete, TestApiUrl(prefix+"/"+strconv.Itoa(created.GetID())), nil)
 
 	if err != nil {
 		panic(err)
@@ -129,7 +128,7 @@ func testDelete[T models.BaseModel](t *testing.T, prefix string, created T) {
 	defer res.Body.Close()
 	assert.Equal(t, http.StatusNoContent, res.StatusCode, "Expected status code 204")
 
-	res, err = http.Get(testutil.TestApiUrl(prefix + "/" + strconv.Itoa(created.GetID())))
+	res, err = http.Get(TestApiUrl(prefix + "/" + strconv.Itoa(created.GetID())))
 	if err != nil {
 		panic(err)
 	}
@@ -137,7 +136,7 @@ func testDelete[T models.BaseModel](t *testing.T, prefix string, created T) {
 	assert.Equal(t, http.StatusNotFound, res.StatusCode, "Expected status code 404")
 }
 
-func testReadAll[T models.BaseModel](t *testing.T, prefix string, createMany func(int)) {
+func TestReadAll[T models.BaseModel](t *testing.T, prefix string, createMany func(int)) {
 	fmt.Println("Testing read all for prefix:" + " " + prefix + "")
 	createMany(10)
 	// Test pagination with size and page query parameters
@@ -145,7 +144,7 @@ func testReadAll[T models.BaseModel](t *testing.T, prefix string, createMany fun
 	size = 5
 	page = 1
 
-	res, err := http.Get(testutil.TestApiUrl(prefix + "?size=" + strconv.Itoa(size) + "&page=" + strconv.Itoa(page)))
+	res, err := http.Get(TestApiUrl(prefix + "?size=" + strconv.Itoa(size) + "&page=" + strconv.Itoa(page)))
 	if err != nil {
 		panic(err)
 	}
@@ -178,7 +177,7 @@ func testReadAll[T models.BaseModel](t *testing.T, prefix string, createMany fun
 
 	// Test another page
 	page = 2
-	res, err = http.Get(testutil.TestApiUrl(prefix + "?size=" + strconv.Itoa(size) + "&page=" + strconv.Itoa(page)))
+	res, err = http.Get(TestApiUrl(prefix + "?size=" + strconv.Itoa(size) + "&page=" + strconv.Itoa(page)))
 	if err != nil {
 		panic(err)
 	}

@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 	"ideashare/config"
 	"ideashare/models"
-	"ideashare/routes"
+
 	"time"
 )
 
@@ -31,8 +31,5 @@ func RunApp(dbDsn string) (*fiber.App, *config.AppContainer) {
 	app.Server().WriteBufferSize = 1024 * 1024 * 1024
 	app.Server().ReadBufferSize = 256 * 1024
 	container := &config.AppContainer{Db: db}
-	routes.ConfigureRoutes(app, container)
-	print("Starting server...")
-
 	return app, container
 }
