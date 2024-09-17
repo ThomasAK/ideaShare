@@ -11,3 +11,7 @@ local:
 
 reset:
 	docker compose down -v
+
+lint:
+	(cd server && go fmt ./...) && \
+	(cd ui && npm run lint:fix)

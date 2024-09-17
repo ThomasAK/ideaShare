@@ -1,7 +1,7 @@
 package models
 
 type IdeaLike struct {
-	Base
-	IdeaID    int `json:"ideaID"`
-	CreatedBy int `json:"createdBy"`
+	HardDeleteModel
+	IdeaID int `gorm:"not null;index:user_like_unq,unique" json:"ideaID" faker:"-"`
+	UserID int `gorm:"not null;index:user_like_unq,unique" json:"userID" faker:"-"`
 }
