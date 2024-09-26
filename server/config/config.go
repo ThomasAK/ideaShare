@@ -2,7 +2,9 @@ package config
 
 import (
 	"fmt"
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-sql-driver/mysql"
+	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 	"os"
 	"time"
@@ -11,15 +13,21 @@ import (
 var overrides = make(map[string]string)
 
 type AppContainer struct {
-	Db *gorm.DB
+	Db           *gorm.DB
+	OIDCProvider *oidc.Provider
+	OAuth2Config *oauth2.Config
 }
 
 const (
-	DbHost = "DB_HOST"
-	DbPort = "DB_PORT"
-	DbUser = "DB_USER"
-	DbPass = "DB_PASS"
-	DbName = "DB_NAME"
+	DbHost           = "DB_HOST"
+	DbPort           = "DB_PORT"
+	DbUser           = "DB_USER"
+	DbPass           = "DB_PASS"
+	DbName           = "DB_NAME"
+	OIDCClientId     = "OIDC_CLIENT_ID"
+	OIDCClientSecret = "OIDC_CLIENT_SECRET"
+	OIDCCallbackUrl  = "OIDC_CALLBACK_URL"
+	OIDCProviderUrl  = "OIDC_PROVIDER_URL"
 )
 
 func GetStringOr(key string, def string) string {

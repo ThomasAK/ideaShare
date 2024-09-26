@@ -47,7 +47,6 @@ export default function SettingsPage (): ReactNode {
     setChecked(newChecked)
   }
   return (
-      <>
         <List className="list" sx={{ width: '40%', margin: 'auto' }}>
             {settings.map(setting =>
                 <ListItem key={setting.id} sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid grey' }}>
@@ -62,6 +61,5 @@ export default function SettingsPage (): ReactNode {
                 </ListItem>
             )}
         </List>
-      </>
   )
 }

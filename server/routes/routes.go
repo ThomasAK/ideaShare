@@ -1,7 +1,9 @@
 package routes
 
 import (
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"ideashare/config"
 	"ideashare/models"
@@ -24,6 +26,38 @@ func SelfOrSiteAdminAuthorizer(ctx *CrudderCtx[*models.User]) bool {
 func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 	app.Static("/", "./public")
 	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.SendString("OK")
+	})
+	app.Get("/api/auth/login", func(c *fiber.Ctx) error {
+		return c.Redirect(container.OAuth2Config.AuthCodeURL(uuid.New().String()))
+	})
+	var verifier = container.OIDCProvider.Verifier(&oidc.Config{ClientID: container.OAuth2Config.ClientID})
+	app.Get("/api/auth/authorize", func(c *fiber.Ctx) error {
+		oauth2Token, err := container.OAuth2Config.Exchange(c.Context(), c.Query("code"))
+		if err != nil {
+			// handle error
+		}
+
+		// Extract the ID Token from OAuth2 token.
+		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+		if !ok {
+			// handle missing token
+		}
+
+		// Parse and verify ID Token payload.
+		idToken, err := verifier.Verify(c.Context(), rawIDToken)
+		if err != nil {
+			// handle error
+		}
+
+		// Extract custom claims
+		var claims struct {
+			Email    string `json:"email"`
+			Verified bool   `json:"email_verified"`
+		}
+		if err := idToken.Claims(&claims); err != nil {
+			// handle error
+		}
 		return c.SendString("OK")
 	})
 	api := app.Group("/api")

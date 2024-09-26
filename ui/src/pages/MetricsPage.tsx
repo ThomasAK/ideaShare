@@ -29,7 +29,6 @@ export default function MetricsPage (): ReactNode {
     }
   ]
   return (
-      <>
           <Stack direction={{ lg: 'row', sm: 'column' }} sx={{ justifyContent: 'space-evenly', margin: 'auto', width: '100%' }}>
         <Box sx={{ width: '80%', boxShadow: 2, margin: '2rem' }}>
             <Stack sx={{ marginLeft: '30%', marginRight: '30%', textAlign: 'center' }}>
@@ -59,6 +58,5 @@ export default function MetricsPage (): ReactNode {
             </Box>
         </Box>
           </Stack>
-      </>
   )
 }

@@ -4,9 +4,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"ideashare/auth"
 	"ideashare/config"
 	"ideashare/models"
-
 	"time"
 )
 
@@ -30,6 +30,7 @@ func RunApp(dbDsn string) (*fiber.App, *config.AppContainer) {
 	app := fiber.New()
 	app.Server().WriteBufferSize = 1024 * 1024 * 1024
 	app.Server().ReadBufferSize = 256 * 1024
-	container := &config.AppContainer{Db: db}
+	oidcProvider, oAuth2Config := auth.SetUpOIDC()
+	container := &config.AppContainer{Db: db, OIDCProvider: oidcProvider, OAuth2Config: oAuth2Config}
 	return app, container
 }

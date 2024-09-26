@@ -40,7 +40,6 @@ export default function ListPage ({ currentUser }: { currentUser?: boolean }): R
     fetchMoreData()
   }, [])
   return (
-        <>
             <List className="list" sx={{ width: '100%' }}>
                 <InfiniteScroll
                     dataLength={ideas.length}
@@ -69,6 +68,5 @@ export default function ListPage ({ currentUser }: { currentUser?: boolean }): R
                 )}
                 </InfiniteScroll>
             </List>
-        </>
   )
 }
