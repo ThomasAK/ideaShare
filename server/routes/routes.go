@@ -1,12 +1,16 @@
 package routes
 
 import (
-	"github.com/coreos/go-oidc/v3/oidc"
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"ideashare/auth"
 	"ideashare/config"
 	"ideashare/models"
+	"net/url"
+	"strings"
+	"time"
 )
 
 func AllowAllReadAuthorizer[T models.BaseModel](ctx *CrudderCtx[T]) bool {
@@ -23,44 +27,81 @@ func SelfOrSiteAdminAuthorizer(ctx *CrudderCtx[*models.User]) bool {
 	return SiteAdminAuthorizer(ctx)
 }
 
+func setAuthCookie(c *fiber.Ctx, key string, token string, expires time.Time) {
+	reqHeaders := c.GetReqHeaders()
+	host := "localhost"
+	if _, ok := reqHeaders["Host"]; ok {
+		host = reqHeaders["Host"][0]
+	}
+	c.Cookie(&fiber.Cookie{
+		Name:     key,
+		Value:    token,
+		Path:     "/",
+		HTTPOnly: true,
+		Expires:  expires,
+		Secure:   !strings.Contains(host, "localhost") && !strings.Contains(host, "127.0.0.1"),
+		SameSite: "strict",
+	})
+}
+
 func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 	app.Static("/", "./public")
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 	app.Get("/api/auth/login", func(c *fiber.Ctx) error {
-		return c.Redirect(container.OAuth2Config.AuthCodeURL(uuid.New().String()))
+		nonce := uuid.New().String()
+		loginUrl := strings.Replace(container.OAuth2Config.AuthCodeURL(nonce), "response_type=code", "response_type=id_token", 1) + "&response_mode=form_post&nonce=" + nonce
+		return c.Redirect(loginUrl)
 	})
-	var verifier = container.OIDCProvider.Verifier(&oidc.Config{ClientID: container.OAuth2Config.ClientID})
-	app.Get("/api/auth/authorize", func(c *fiber.Ctx) error {
-		oauth2Token, err := container.OAuth2Config.Exchange(c.Context(), c.Query("code"))
+	app.Post("/api/auth/authorize", func(c *fiber.Ctx) error {
+		params, err := url.ParseQuery(string(c.Body()))
 		if err != nil {
-			// handle error
+			return c.SendStatus(500)
 		}
-
-		// Extract the ID Token from OAuth2 token.
-		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
-		if !ok {
-			// handle missing token
+		idToken, ok := params["id_token"]
+		if !ok || len(idToken) != 1 {
+			return c.SendStatus(500)
 		}
-
-		// Parse and verify ID Token payload.
-		idToken, err := verifier.Verify(c.Context(), rawIDToken)
+		rawIdToken := idToken[0]
+		parsedIdToken, err := container.IdTokenVerifier.Verify(c.Context(), rawIdToken)
 		if err != nil {
-			// handle error
+			return c.SendStatus(401)
 		}
 
-		// Extract custom claims
-		var claims struct {
-			Email    string `json:"email"`
-			Verified bool   `json:"email_verified"`
-		}
-		if err := idToken.Claims(&claims); err != nil {
-			// handle error
-		}
-		return c.SendString("OK")
+		setAuthCookie(c, auth.IdeaShareIDToken, rawIdToken, parsedIdToken.Expiry)
+		return c.Redirect("/")
 	})
-	api := app.Group("/api")
+	authMiddleware := func(c *fiber.Ctx) error {
+		idToken := c.Cookies(auth.IdeaShareIDToken)
+		if idToken == "" {
+			return c.SendStatus(401)
+		}
+		parsedToken, err := container.IdTokenVerifier.Verify(c.Context(), idToken)
+		if err != nil {
+			return c.SendStatus(401)
+		}
+		user := &models.User{}
+		res := container.Db.Model(user).Preload("Roles").Where("external_id = ?", parsedToken.Subject).First(user)
+		if res.Error != nil {
+			if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+				claims := auth.OidcUserClaims{}
+				err = parsedToken.Claims(&claims)
+				if err != nil {
+					return c.SendStatus(500)
+				}
+				user.ExternalID = parsedToken.Subject
+				user.FirstName = claims.GivenName
+				user.LastName = claims.FamilyName
+				user.Email = claims.Email
+				container.Db.Create(user)
+				container.Db.Model(user).Preload("Roles").Where("external_id = ?", parsedToken.Subject).First(user)
+			}
+		}
+		c.Locals("user", user)
+		return c.Next()
+	}
+	api := app.Group("/api").Use(authMiddleware)
 	api.Get("/user/current", AppRoute(container, func(container *config.AppContainer, c *fiber.Ctx) (interface{}, error) {
 		return c.Locals("user"), nil
 	}))

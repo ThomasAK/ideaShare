@@ -12,8 +12,13 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
   if (editor.current) {
     editorCreatedCb(editor.current)
   }
+  const isInitialized = useRef<boolean>(false)
   useEffect(() => {
-    if (editor.current) {
+    if(!data || isInitialized.current){
+      return
+    }
+    if (editor.current && !isInitialized.current) {
+      isInitialized.current = true
       editor.current?.isReady
         .then(async () => {
           const currentBlockCount = editor.current?.blocks.getBlocksCount() ?? 0
@@ -37,7 +42,6 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
       placeholder: placeHolder,
       // @ts-expect-error the type is wrong...
       tools: EditorJSTools,
-      // @ts-expect-error null is fine
       data
     })
     editor.current.isReady.then(() => {

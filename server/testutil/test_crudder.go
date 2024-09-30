@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"ideashare/auth"
 	"ideashare/models"
 	"io"
 	"net/http"
@@ -38,7 +39,10 @@ func testCreate[T models.BaseModel](t *testing.T, prefix string, emptyModel func
 	if err != nil {
 		panic(err)
 	}
-	res, err := http.Post(TestApiUrl(prefix), "application/json", bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest(http.MethodPost, TestApiUrl(prefix), bytes.NewBuffer(reqBody))
+	req.Header.Set("Cookie", auth.IdeaShareIDToken+"=token")
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
 	defer res.Body.Close()
 	if err != nil {
 		panic(err)
@@ -63,7 +67,10 @@ func testCreate[T models.BaseModel](t *testing.T, prefix string, emptyModel func
 
 func testRead[T models.BaseModel](t *testing.T, prefix string, created T, emptyModel func() T) {
 	fmt.Println("Testing read for prefix:" + " " + prefix + " with id: " + strconv.Itoa(created.GetID()) + "")
-	res, err := http.Get(TestApiUrl(prefix + "/" + strconv.Itoa(created.GetID())))
+	req, err := http.NewRequest(http.MethodGet, TestApiUrl(prefix+"/"+strconv.Itoa(created.GetID())), nil)
+	req.Header.Set("Cookie", auth.IdeaShareIDToken+"=token")
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -91,6 +98,7 @@ func testUpdate[T models.BaseModel](t *testing.T, prefix string, created T, upda
 		panic(err)
 	}
 	res.Header.Set("Content-Type", "application/json")
+	res.Header.Set("Cookie", auth.IdeaShareIDToken+"=token")
 	client := &http.Client{}
 	resp, err := client.Do(res)
 	if err != nil {
@@ -121,6 +129,7 @@ func testDelete[T models.BaseModel](t *testing.T, prefix string, created T) {
 		panic(err)
 	}
 	client := &http.Client{}
+	req.Header.Set("Cookie", auth.IdeaShareIDToken+"=token")
 	res, err := client.Do(req)
 	if err != nil {
 		panic(err)
@@ -128,7 +137,10 @@ func testDelete[T models.BaseModel](t *testing.T, prefix string, created T) {
 	defer res.Body.Close()
 	assert.Equal(t, http.StatusNoContent, res.StatusCode, "Expected status code 204")
 
-	res, err = http.Get(TestApiUrl(prefix + "/" + strconv.Itoa(created.GetID())))
+	req, err = http.NewRequest(http.MethodGet, TestApiUrl(prefix+"/"+strconv.Itoa(created.GetID())), nil)
+	req.Header.Set("Cookie", auth.IdeaShareIDToken+"=token")
+	req.Header.Set("Content-Type", "application/json")
+	res, err = http.DefaultClient.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -144,7 +156,10 @@ func TestReadAll[T models.BaseModel](t *testing.T, prefix string, createMany fun
 	size = 5
 	page = 1
 
-	res, err := http.Get(TestApiUrl(prefix + "?size=" + strconv.Itoa(size) + "&page=" + strconv.Itoa(page)))
+	req, err := http.NewRequest(http.MethodGet, TestApiUrl(prefix+"?size="+strconv.Itoa(size)+"&page="+strconv.Itoa(page)), nil)
+	req.Header.Set("Cookie", auth.IdeaShareIDToken+"=token")
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -177,7 +192,11 @@ func TestReadAll[T models.BaseModel](t *testing.T, prefix string, createMany fun
 
 	// Test another page
 	page = 2
-	res, err = http.Get(TestApiUrl(prefix + "?size=" + strconv.Itoa(size) + "&page=" + strconv.Itoa(page)))
+	req, err = http.NewRequest(http.MethodGet, TestApiUrl(prefix+"?size="+strconv.Itoa(size)+"&page="+strconv.Itoa(page)), nil)
+	req.Header.Set("Cookie", auth.IdeaShareIDToken+"=token")
+	req.Header.Set("Content-Type", "application/json")
+	res, err = http.DefaultClient.Do(req)
+
 	if err != nil {
 		panic(err)
 	}
