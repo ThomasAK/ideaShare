@@ -17,9 +17,9 @@ type BaseModel interface {
 
 type HardDeleteModel struct {
 	ID        int       `gorm:"primarykey" json:"id,omitempty" faker:"-"`
-	CreatedAt time.Time `gorm:"index;not null" json:"createdAt" faker:"-"`
+	CreatedAt time.Time `gorm:"index;not null;<-:create" json:"createdAt" faker:"-"`
 	UpdatedAt time.Time `gorm:"index" json:"updatedAt" faker:"-"`
-	CreatedBy int       `gorm:"index;not null" json:"createdBy" faker:"-"`
+	CreatedBy int       `gorm:"index;not null;<-:create" json:"createdBy" faker:"-"`
 }
 
 type SoftDeleteModel struct {

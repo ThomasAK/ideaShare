@@ -57,7 +57,7 @@ export async function apiRequest<T> (path: string, method: string, body: any, he
       for (const listener of unauthorizedListeners) {
         await listener()
       }
-      throw await makeApiError(res)
+      window.location.href = '/api/auth/login'
     }
 
     if (res.status === 404) {

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-sql-driver/mysql"
@@ -12,10 +13,15 @@ import (
 
 var overrides = make(map[string]string)
 
+type IDTokenVerifier interface {
+	Verify(ctx context.Context, rawIDToken string) (*oidc.IDToken, error)
+}
+
 type AppContainer struct {
-	Db           *gorm.DB
-	OIDCProvider *oidc.Provider
-	OAuth2Config *oauth2.Config
+	Db              *gorm.DB
+	OIDCProvider    *oidc.Provider
+	OAuth2Config    *oauth2.Config
+	IdTokenVerifier IDTokenVerifier
 }
 
 const (
