@@ -13,7 +13,7 @@ import {
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { useNavigate } from 'react-router-dom'
-import { fetchIdeas, type ListIdea } from '../types/idea.ts'
+import { fetchIdeas, likeIdea, type ListIdea } from '../types/idea.ts'
 
 export default function ListPage ({ currentUser }: { currentUser?: boolean }): ReactNode {
   const [ideas, setIdeas] = useState<ListIdea[]>([])
@@ -57,11 +57,14 @@ export default function ListPage ({ currentUser }: { currentUser?: boolean }): R
                                     {idea.title}
                                 </Typography>
                             <span>
-                                <span>{idea.likes > 1000 ? (idea.likes / 100) + 'K' : idea.likes }</span>
-                                <IconButton aria-label="Favorite">
+                                <span>{idea.likes > 1000 ? (idea.likes / 1000) + 'K' : idea.likes }</span>
+                                <IconButton onClick={ async (e) => {
+                                  e.stopPropagation()
+                                  await likeIdea(idea.id)
+                                }} aria-label="Favorite">
                                     <FavoriteBorderIcon/>
                                 </IconButton>
-                              {!isSmall && <Chip sx={{ marginLeft: '2rem' }} variant="outlined" label={idea.status}/> }
+                                {!isSmall && <Chip sx={{ marginLeft: '2rem' }} variant="outlined" label={idea.status || 'New'}/> }
                             </span>
                         </ListItemButton>
                 </ListItem>

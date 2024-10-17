@@ -158,9 +158,6 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 			if ctx.Method == ReadAll || ctx.Method == ReadOne || ctx.Method == Update {
 				return false
 			}
-			if ctx.RequestBody != nil && ctx.RequestBody.UserID != ctx.User.ID {
-				return false
-			}
 			paramsInt, err := ctx.ReqCtx.ParamsInt("ideaID")
 			if err != nil {
 				return false
@@ -213,15 +210,30 @@ func ConfigureRoutes(app *fiber.App, container *config.AppContainer) {
 		eventHandlers: []*CrudderEventHandler[*models.Idea]{{
 			Handles: AfterLoad,
 			Handle: func(event *CrudderEvent[*models.Idea]) error {
-				if event.Ctx.Method != ReadOne {
+				if event.Ctx.Method != ReadOne && event.Ctx.Method != ReadAll {
 					return nil
 				}
-				model := event.Ctx.Model
-				user := event.Ctx.User
-				var count int64
-				container.Db.Model(&models.IdeaLike{}).Where("idea_id = ?", model.ID).Count(&count)
-				model.Likes = int(count)
-				container.Db.Model(&models.IdeaLike{}).Where("created_by = ?", user.ID).Count(&count)
+				switch event.Ctx.Method {
+
+				case ReadAll:
+					for _, model := range event.Ctx.Rows {
+						user := event.Ctx.User
+						var count int64
+						container.Db.Model(&models.IdeaLike{}).Where("idea_id = ?", model.ID).Count(&count)
+						model.Likes = int(count)
+						container.Db.Model(&models.IdeaLike{}).Where("created_by = ?", user.ID).Where("id = ?", model.ID).Count(&count)
+					}
+
+					break
+				case ReadOne:
+					model := event.Ctx.Model
+					user := event.Ctx.User
+					var count int64
+					container.Db.Model(&models.IdeaLike{}).Where("idea_id = ?", model.ID).Count(&count)
+					model.Likes = int(count)
+					container.Db.Model(&models.IdeaLike{}).Where("created_by = ?", user.ID).Where("id = ?", model.ID).Count(&count)
+					break
+				}
 				return nil
 			},
 		}},

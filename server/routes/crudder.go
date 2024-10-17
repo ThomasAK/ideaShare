@@ -135,7 +135,7 @@ func (c *Crudder[T]) ReadAll() func(ctx *fiber.Ctx) error {
 		size := ctx.QueryInt("size", 10)
 		page := ctx.QueryInt("page", 1)
 		var results []T
-		crudderCtx := &CrudderCtx[T]{Method: ReadAll, User: user, Rows: results, ReqCtx: ctx}
+		crudderCtx := &CrudderCtx[T]{Method: ReadAll, User: user, ReqCtx: ctx}
 		if !c.config.authorizer(crudderCtx) {
 			return nil, ctx.SendStatus(403)
 		}
@@ -144,6 +144,7 @@ func (c *Crudder[T]) ReadAll() func(ctx *fiber.Ctx) error {
 			return nil, err
 		}
 		result := filter.Offset((page - 1) * size).Limit(size).Find(&results)
+		crudderCtx.Rows = results
 		if result.Error != nil {
 			return nil, handleDbError(result.Error)
 		}

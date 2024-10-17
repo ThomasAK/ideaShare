@@ -58,3 +58,7 @@ export async function saveIdea (idea: EditableIdea): Promise<EditableIdea | null
   const apiIdea = toApiIdea(idea)
   return await (isNew ? apiPost(path, apiIdea) : apiPut(path, apiIdea))
 }
+
+export async function likeIdea (ideaID: number): Promise<null> {
+  return await apiPost(`/api/idea/${ideaID}/like`, { ideaID })
+}
