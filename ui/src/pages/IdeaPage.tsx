@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { type ReactNode, useEffect, useState } from 'react'
-import { type EditableIdea, fetchIdea, newIdea } from '../types/idea.ts'
+import { type EditableIdea, emptyIdea, fetchIdea } from '../types/idea.ts'
 import Editor from '../component/Editor.tsx'
 import { Fab } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
@@ -8,7 +8,7 @@ import EditIcon from '@mui/icons-material/Edit'
 export default function IdeaPage (): ReactNode {
   const params = useParams()
   const location = useLocation()
-  const [idea, setIdea] = useState<EditableIdea>(newIdea())
+  const [idea, setIdea] = useState<EditableIdea>(emptyIdea())
   const navigate = useNavigate()
   const editButtonSize = '28px'
   useEffect(() => {

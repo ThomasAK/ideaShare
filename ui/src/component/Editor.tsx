@@ -14,7 +14,7 @@ export default function Editor ({ readOnly, placeHolder, id, style, editorCreate
   }
   const isInitialized = useRef<boolean>(false)
   useEffect(() => {
-    if(!data || isInitialized.current){
+    if (!data || isInitialized.current) {
       return
     }
     if (editor.current && !isInitialized.current) {

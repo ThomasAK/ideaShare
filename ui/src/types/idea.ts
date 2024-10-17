@@ -3,6 +3,10 @@ import type EditorJS from '@editorjs/editorjs'
 import { apiGet, apiPost, apiPut } from '../lib/api.ts'
 
 export function newIdea (): EditableIdea {
+  return { id: null, title: '', description: { blocks: [] } }
+}
+
+export function emptyIdea (): EditableIdea {
   return { id: null, title: '', description: null }
 }
 

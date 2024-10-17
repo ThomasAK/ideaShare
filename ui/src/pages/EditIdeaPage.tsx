@@ -3,16 +3,16 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Editor from '../component/Editor.tsx'
 import { Button, TextField } from '@mui/material'
 import type EditorJS from '@editorjs/editorjs'
-import { type EditableIdea, fetchIdea, newIdea, saveIdea } from '../types/idea.ts'
+import { type EditableIdea, emptyIdea, fetchIdea, newIdea, saveIdea } from '../types/idea.ts'
 import { ApiError } from '../lib/api.ts'
 
 export default function EditIdeaPage (): ReactNode {
   const params = useParams()
-  const [idea, setIdea] = useState<EditableIdea>(newIdea())
   const location = useLocation()
   const navigate = useNavigate()
   const ideaId = parseInt(params.id ?? '-1') ?? -1
   const isNew = ideaId === -1
+  const [idea, setIdea] = useState<EditableIdea>(isNew ? newIdea() : emptyIdea())
   // this happens when navigating from an edit page to a new idea page as the useEffect is not triggered again
   if (idea.id && ideaId !== idea.id) {
     setIdea(newIdea())
